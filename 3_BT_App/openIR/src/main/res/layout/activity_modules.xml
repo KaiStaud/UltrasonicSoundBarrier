@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <TextView
+            android:text="Modules"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:id="@+id/textView" android:textAlignment="center"
+            android:textSize="24sp"/>
+    <TextView
+            android:text="TX0"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:id="@+id/textView2" android:textAlignment="center"/>
+    <ProgressBar
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="152dp"
+            android:layout_height="48dp"
+            android:id="@+id/progressBar"/>
+    <TextView
+            android:text="RX0"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:id="@+id/textView4" android:textAlignment="center"/>
+    <ProgressBar
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="154dp"
+            android:layout_height="47dp"
+            android:id="@+id/progressBar2"/>
+    <EditText
+            android:layout_width="154dp"
+            android:layout_height="wrap_content"
+            android:inputType="textPersonName"
+            android:text="module_mode"
+            android:ems="10"
+            android:id="@+id/editText"/>
+    <TextView
+            android:text="Basestation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:id="@+id/textView6" android:textAlignment="center"/>
+    <ProgressBar
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="154dp"
+            android:layout_height="60dp"
+            android:id="@+id/progressBar3"/>
+    <EditText
+            android:layout_width="155dp"
+            android:layout_height="55dp"
+            android:inputType="textPersonName"
+            android:text="basestation_mode"
+            android:ems="10"
+            android:id="@+id/editText2"/>
+</LinearLayout>
