@@ -23,6 +23,13 @@
 #define Wakeup_Port PORTB
 #define Wakeup_Pin 4
 
+/* SPI Pins*/
+#define SPI_Port DDRB
+#define SS	 0
+#define SCK	 1
+#define MOSI 2
+#define MISO 3
+
 #define Dutycycle 25
 
 
