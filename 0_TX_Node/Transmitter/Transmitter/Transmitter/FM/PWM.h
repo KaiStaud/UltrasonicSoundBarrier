@@ -1,17 +1,16 @@
 /*
  * PWM.h
  *
- * Created: 14.08.2019 16:44:13
+ * Created: 30.08.2019 17:56:32
  *  Author: kai-s
  */ 
 
-
 #ifndef PWM_H_
 #define PWM_H_
-
+#include "stdint.h"
 
 void PWM_Init();
-void PWM_Operation(uint8_t Enable);
+void PWM_Operation(uint8_t Mode);
 
 
 
