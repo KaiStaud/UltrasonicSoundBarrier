@@ -9,6 +9,7 @@
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 
+# define F_CPU 16000000
 /* SPI Interface */
 #define SPI_PORT	DDRB
 #define SCK			1

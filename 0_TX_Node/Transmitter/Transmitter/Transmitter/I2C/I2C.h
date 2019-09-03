@@ -1,17 +1,18 @@
 /*
- * I2C.h
+ * I2c.h
  *
- * Created: 30.08.2019 20:47:02
+ * Created: 28.08.2019 19:25:04
  *  Author: kai-s
  */ 
+
+
 #ifndef I2C_H_
 #define I2C_H_
 
-#include "stdint.h"
-
 void I2C_init();
-int I2C_read(uint8_t I2C_address);
-void I2C_write(uint8_t I2C_address,int data); 
+void I2C_start();
+void I2C_stop();
+void I2C_read();
 
 
-#endif /* PWM_H_ */
+#endif /* I2C_H_ */

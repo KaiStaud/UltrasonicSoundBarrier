@@ -3,27 +3,29 @@ Transmitter.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .data         00000000  00800200  00800200  00000154  2**0
+  0 .data         00000000  00800200  00800200  000001f6  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  1 .text         00000100  00000000  00000000  00000054  2**1
+  1 .text         000001a2  00000000  00000000  00000054  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .comment      00000030  00000000  00000000  00000154  2**0
+  2 .comment      00000030  00000000  00000000  000001f6  2**0
                   CONTENTS, READONLY
-  3 .note.gnu.avr.deviceinfo 00000040  00000000  00000000  00000184  2**2
+  3 .note.gnu.avr.deviceinfo 00000040  00000000  00000000  00000228  2**2
                   CONTENTS, READONLY
-  4 .debug_aranges 00000020  00000000  00000000  000001c4  2**0
+  4 .debug_aranges 00000058  00000000  00000000  00000268  2**0
                   CONTENTS, READONLY, DEBUGGING
-  5 .debug_info   00000c39  00000000  00000000  000001e4  2**0
+  5 .debug_info   00000e36  00000000  00000000  000002c0  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_abbrev 00000b63  00000000  00000000  00000e1d  2**0
+  6 .debug_abbrev 00000cb5  00000000  00000000  000010f6  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_line   00000232  00000000  00000000  00001980  2**0
+  7 .debug_line   000004dc  00000000  00000000  00001dab  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_frame  00000024  00000000  00000000  00001bb4  2**2
+  8 .debug_frame  00000078  00000000  00000000  00002288  2**2
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_str    00000527  00000000  00000000  00001bd8  2**0
+  9 .debug_str    000005e7  00000000  00000000  00002300  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_ranges 00000010  00000000  00000000  000020ff  2**0
+ 10 .debug_loc    00000110  00000000  00000000  000028e7  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 11 .debug_ranges 00000038  00000000  00000000  000029f7  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -153,23 +155,182 @@ Disassembly of section .text:
   ee:	cd bf       	out	0x3d, r28	; 61
   f0:	00 e0       	ldi	r16, 0x00	; 0
   f2:	0c bf       	out	0x3c, r16	; 60
-  f4:	02 d0       	rcall	.+4      	; 0xfa <main>
-  f6:	02 c0       	rjmp	.+4      	; 0xfc <_exit>
+  f4:	41 d0       	rcall	.+130    	; 0x178 <main>
+  f6:	53 c0       	rjmp	.+166    	; 0x19e <_exit>
 
 000000f8 <__bad_interrupt>:
   f8:	83 cf       	rjmp	.-250    	; 0x0 <__vectors>
 
-000000fa <main>:
+000000fa <I2C_init>:
+#define F_CPU 16000000L
 
-#include <avr/io.h>
-#include "PWM.h"
+#define F_SCL 100000L
+void I2C_init(void)
+{
+	TWSR = 0;
+  fa:	10 92 b9 00 	sts	0x00B9, r1	; 0x8000b9 <__TEXT_REGION_LENGTH__+0x7000b9>
+	TWBR = ((F_CPU/F_SCL)-16)/2;
+  fe:	88 e4       	ldi	r24, 0x48	; 72
+ 100:	80 93 b8 00 	sts	0x00B8, r24	; 0x8000b8 <__TEXT_REGION_LENGTH__+0x7000b8>
+ 104:	08 95       	ret
+
+00000106 <I2C_start>:
+
+unsigned char I2C_start(unsigned char address)
+{
+	uint8_t twst;
+	
+	TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
+ 106:	94 ea       	ldi	r25, 0xA4	; 164
+ 108:	90 93 bc 00 	sts	0x00BC, r25	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7000bc>
+	
+	while(!(TWCR & (1<<TWINT)))
+ 10c:	ec eb       	ldi	r30, 0xBC	; 188
+ 10e:	f0 e0       	ldi	r31, 0x00	; 0
+ 110:	90 81       	ld	r25, Z
+ 112:	99 23       	and	r25, r25
+ 114:	ec f7       	brge	.-6      	; 0x110 <I2C_start+0xa>
+	;
+	
+	twst = TW_STATUS & 0xF8;
+ 116:	90 91 b9 00 	lds	r25, 0x00B9	; 0x8000b9 <__TEXT_REGION_LENGTH__+0x7000b9>
+ 11a:	98 7f       	andi	r25, 0xF8	; 248
+	if((twst!=TW_START) && (twst!=TW_REP_START)) return 1;
+ 11c:	98 30       	cpi	r25, 0x08	; 8
+ 11e:	11 f0       	breq	.+4      	; 0x124 <I2C_start+0x1e>
+ 120:	90 31       	cpi	r25, 0x10	; 16
+ 122:	a1 f4       	brne	.+40     	; 0x14c <I2C_start+0x46>
+	
+	TWDR = address;
+ 124:	80 93 bb 00 	sts	0x00BB, r24	; 0x8000bb <__TEXT_REGION_LENGTH__+0x7000bb>
+	TWCR = (1<<TWINT) | (1<<TWEN);
+ 128:	84 e8       	ldi	r24, 0x84	; 132
+ 12a:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7000bc>
+	
+	while(!(TWCR & (1<<TWINT)))
+ 12e:	ec eb       	ldi	r30, 0xBC	; 188
+ 130:	f0 e0       	ldi	r31, 0x00	; 0
+ 132:	80 81       	ld	r24, Z
+ 134:	88 23       	and	r24, r24
+ 136:	ec f7       	brge	.-6      	; 0x132 <I2C_start+0x2c>
+	;
+	
+	twst = TW_STATUS & 0xF8;
+ 138:	90 91 b9 00 	lds	r25, 0x00B9	; 0x8000b9 <__TEXT_REGION_LENGTH__+0x7000b9>
+ 13c:	98 7f       	andi	r25, 0xF8	; 248
+	if ((twst != TW_MT_SLA_ACK) && (twst != TW_MR_SLA_ACK)) return 1;
+ 13e:	98 31       	cpi	r25, 0x18	; 24
+ 140:	39 f0       	breq	.+14     	; 0x150 <I2C_start+0x4a>
+	
+	while(!(TWCR & (1<<TWINT)))
+	;
+	
+	twst = TW_STATUS & 0xF8;
+	if((twst!=TW_START) && (twst!=TW_REP_START)) return 1;
+ 142:	81 e0       	ldi	r24, 0x01	; 1
+ 144:	90 34       	cpi	r25, 0x40	; 64
+ 146:	29 f4       	brne	.+10     	; 0x152 <I2C_start+0x4c>
+ 148:	80 e0       	ldi	r24, 0x00	; 0
+ 14a:	08 95       	ret
+ 14c:	81 e0       	ldi	r24, 0x01	; 1
+ 14e:	08 95       	ret
+	;
+	
+	twst = TW_STATUS & 0xF8;
+	if ((twst != TW_MT_SLA_ACK) && (twst != TW_MR_SLA_ACK)) return 1;
+	
+	return 0;
+ 150:	80 e0       	ldi	r24, 0x00	; 0
+}
+ 152:	08 95       	ret
+
+00000154 <I2C_write>:
+
+unsigned char I2C_write(unsigned char data)
+{
+	uint8_t twst;
+	
+	TWDR = data;
+ 154:	80 93 bb 00 	sts	0x00BB, r24	; 0x8000bb <__TEXT_REGION_LENGTH__+0x7000bb>
+	TWCR = (1<<TWINT) | (1<<TWEN);
+ 158:	84 e8       	ldi	r24, 0x84	; 132
+ 15a:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7000bc>
+	
+	while(!(TWCR & (1<<TWINT)))
+ 15e:	ec eb       	ldi	r30, 0xBC	; 188
+ 160:	f0 e0       	ldi	r31, 0x00	; 0
+ 162:	80 81       	ld	r24, Z
+ 164:	88 23       	and	r24, r24
+ 166:	ec f7       	brge	.-6      	; 0x162 <I2C_write+0xe>
+	;
+	
+	twst = TW_STATUS & 0xF8;
+ 168:	90 91 b9 00 	lds	r25, 0x00B9	; 0x8000b9 <__TEXT_REGION_LENGTH__+0x7000b9>
+ 16c:	98 7f       	andi	r25, 0xF8	; 248
+ 16e:	81 e0       	ldi	r24, 0x01	; 1
+ 170:	98 32       	cpi	r25, 0x28	; 40
+ 172:	09 f4       	brne	.+2      	; 0x176 <I2C_write+0x22>
+ 174:	80 e0       	ldi	r24, 0x00	; 0
+	if(twst != TW_MT_DATA_ACK) return 1;
+	
+	return 0;
+}
+ 176:	08 95       	ret
+
+00000178 <main>:
+#include "Globals.h"
 
 int main(void)
-{
-  fa:	ff cf       	rjmp	.-2      	; 0xfa <main>
+{int i=0;
+    /* Replace with your application code */
+	I2C_init();
+ 178:	c0 df       	rcall	.-128    	; 0xfa <I2C_init>
+#include "PWM.h"
+#include "I2C.h"
+#include "Globals.h"
 
-000000fc <_exit>:
-  fc:	f8 94       	cli
+int main(void)
+{int i=0;
+ 17a:	c0 e0       	ldi	r28, 0x00	; 0
+	I2C_init();
+    while (1) 
+    {
+		for(i=0; i<0xFF ; i++)
+		{
+			I2C_start(PCF8574_ADDR);
+ 17c:	80 e2       	ldi	r24, 0x20	; 32
+ 17e:	c3 df       	rcall	.-122    	; 0x106 <I2C_start>
+			I2C_write(i);
+ 180:	8c 2f       	mov	r24, r28
+ 182:	e8 df       	rcall	.-48     	; 0x154 <I2C_write>
+ 184:	2f ef       	ldi	r18, 0xFF	; 255
+	#else
+		//round up by default
+		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+	#endif
 
-000000fe <__stop_program>:
-  fe:	ff cf       	rjmp	.-2      	; 0xfe <__stop_program>
+	__builtin_avr_delay_cycles(__ticks_dc);
+ 186:	89 e6       	ldi	r24, 0x69	; 105
+ 188:	98 e1       	ldi	r25, 0x18	; 24
+ 18a:	21 50       	subi	r18, 0x01	; 1
+ 18c:	80 40       	sbci	r24, 0x00	; 0
+ 18e:	90 40       	sbci	r25, 0x00	; 0
+ 190:	e1 f7       	brne	.-8      	; 0x18a <main+0x12>
+ 192:	00 c0       	rjmp	.+0      	; 0x194 <main+0x1c>
+ 194:	00 00       	nop
+ 196:	cf 5f       	subi	r28, 0xFF	; 255
+ 198:	cf 3f       	cpi	r28, 0xFF	; 255
+{int i=0;
+    /* Replace with your application code */
+	I2C_init();
+    while (1) 
+    {
+		for(i=0; i<0xFF ; i++)
+ 19a:	81 f7       	brne	.-32     	; 0x17c <main+0x4>
+ 19c:	ee cf       	rjmp	.-36     	; 0x17a <main+0x2>
+
+0000019e <_exit>:
+ 19e:	f8 94       	cli
+
+000001a0 <__stop_program>:
+ 1a0:	ff cf       	rjmp	.-2      	; 0x1a0 <__stop_program>

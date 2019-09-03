@@ -5,14 +5,15 @@
  * Author : kai-s
  */ 
 
+
 #include <avr/io.h>
+#include <util/delay.h>
 #include "PWM.h"
+#include "I2C.h"
+#include "Globals.h"
 
 int main(void)
 {
-    /* Replace with your application code */
-    while (1) 
-    {
-    }
+   
 }
 

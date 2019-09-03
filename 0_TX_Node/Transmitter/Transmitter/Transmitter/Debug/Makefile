@@ -37,6 +37,8 @@ SUBDIRS :=  \
 ../AM \
 ../FM \
 ../Globals \
+../HardwareHandshake \
+../Testmodes \
 ../Sleep \
 ../SPI \
 ../Startup
@@ -45,11 +47,13 @@ SUBDIRS :=  \
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS +=  \
 ../FM/PWM.c \
+../HardwareHandshake/HardwareHandshake.c \
 ../I2C/I2C.c \
 ../main.c \
 ../Sleep/Sleep.c \
 ../SPI/SPI.c \
-../Startup/Startup.c
+../Startup/Startup.c \
+../Testmodes/Testmodes.c
 
 
 PREPROCESSING_SRCS += 
@@ -60,35 +64,43 @@ ASM_SRCS +=
 
 OBJS +=  \
 FM/PWM.o \
+HardwareHandshake/HardwareHandshake.o \
 I2C/I2C.o \
 main.o \
 Sleep/Sleep.o \
 SPI/SPI.o \
-Startup/Startup.o
+Startup/Startup.o \
+Testmodes/Testmodes.o
 
 OBJS_AS_ARGS +=  \
 FM/PWM.o \
+HardwareHandshake/HardwareHandshake.o \
 I2C/I2C.o \
 main.o \
 Sleep/Sleep.o \
 SPI/SPI.o \
-Startup/Startup.o
+Startup/Startup.o \
+Testmodes/Testmodes.o
 
 C_DEPS +=  \
 FM/PWM.d \
+HardwareHandshake/HardwareHandshake.d \
 I2C/I2C.d \
 main.d \
 Sleep/Sleep.d \
 SPI/SPI.d \
-Startup/Startup.d
+Startup/Startup.d \
+Testmodes/Testmodes.d
 
 C_DEPS_AS_ARGS +=  \
 FM/PWM.d \
+HardwareHandshake/HardwareHandshake.d \
 I2C/I2C.d \
 main.d \
 Sleep/Sleep.d \
 SPI/SPI.d \
-Startup/Startup.d
+Startup/Startup.d \
+Testmodes/Testmodes.d
 
 OUTPUT_FILE_PATH +=Transmitter.elf
 
@@ -105,6 +117,13 @@ LINKER_SCRIPT_DEP+=
 
 # AVR32/GNU C Compiler
 FM/PWM.o: ../FM/PWM.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\include" -I"../FM" -I"../AM" -I"../I2C" -I"../Sleep" -I"../SPI" -I"../Startup" -I"../Globals"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atmega2560 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\gcc\dev\atmega2560" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+HardwareHandshake/HardwareHandshake.o: ../HardwareHandshake/HardwareHandshake.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
 	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\include" -I"../FM" -I"../AM" -I"../I2C" -I"../Sleep" -I"../SPI" -I"../Startup" -I"../Globals"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atmega2560 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\gcc\dev\atmega2560" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
@@ -140,6 +159,13 @@ SPI/SPI.o: ../SPI/SPI.c
 	
 
 Startup/Startup.o: ../Startup/Startup.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\include" -I"../FM" -I"../AM" -I"../I2C" -I"../Sleep" -I"../SPI" -I"../Startup" -I"../Globals"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atmega2560 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\gcc\dev\atmega2560" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+Testmodes/Testmodes.o: ../Testmodes/Testmodes.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
 	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\include" -I"../FM" -I"../AM" -I"../I2C" -I"../Sleep" -I"../SPI" -I"../Startup" -I"../Globals"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atmega2560 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\gcc\dev\atmega2560" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
