@@ -22,7 +22,7 @@
 #define SDA			1
 #define SCL			0
 /* Slave Addresses */
-#define PCF8574_ADDR 0x20 //MSB to LSB : 0100 000
+#define PCF8574_ADDR 0x38 //MSB to LSB : 0100 000
 
 /* ADC Pins		*/
 #define ADC_Port

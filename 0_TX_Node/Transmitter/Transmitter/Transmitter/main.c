@@ -7,13 +7,13 @@
 
 
 #include <avr/io.h>
-#include <util/delay.h>
 #include "PWM.h"
 #include "I2C.h"
 #include "Globals.h"
 
 int main(void)
 {
-   
+ I2C_write(PCF8574_ADDR,0xCA);
+ while(1);  
 }
 
