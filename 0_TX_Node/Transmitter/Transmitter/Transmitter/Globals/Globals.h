@@ -10,11 +10,15 @@
 #define GLOBALS_H_
 
 # define F_CPU 16000000
+# define MSBFIRST 0
+#define  LSBFIRST 1
+
 /* SPI Interface */
 #define SPI_PORT	DDRB
 #define SCK			1
 #define MISO		3
 #define MOSI		2
+#define CS_0_PORT	DDRB
 #define CS_0		0
 
 /* I2C Interface */
