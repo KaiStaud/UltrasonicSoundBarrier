@@ -10,8 +10,8 @@
 #define SPI_H_
 #include "stdint.h"
 
-void SPI_init();
-void SPI_write(uint8_t CS,uint8_t data);
+void SPI_init(uint8_t SPI_MODE);
+void SPI_write(uint8_t CS_Port, uint8_t CS_Pin,uint8_t data);
 uint8_t SPI_read();
 
 

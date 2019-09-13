@@ -9,17 +9,19 @@
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 
-# define F_CPU 16000000
-# define MSBFIRST 0
+#define F_CPU 16000000
+#define MSBFIRST 0
 #define  LSBFIRST 1
 
 /* SPI Interface */
 #define SPI_PORT	DDRB
+#define MASTER_MODE 1
+#define SLAVE_MODE	0
 #define SCK			1
 #define MISO		3
 #define MOSI		2
 #define CS_0_PORT	DDRB
-#define CS_0		0
+#define CS_0_PIN		0
 
 /* I2C Interface */
 #define I2C_PORT	DDRD

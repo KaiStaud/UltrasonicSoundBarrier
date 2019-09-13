@@ -5,15 +5,29 @@
  * Author : kai-s
  */ 
 
-
+#include "Globals.h"
 #include <avr/io.h>
+#include "util/delay.h"
 #include "PWM.h"
 #include "I2C.h"
-#include "Globals.h"
+#include "SPI.h"
+//#include "Globals.h"
 
 int main(void)
-{
- I2C_write(PCF8574_ADDR,0xCA);
- while(1);  
+{	/* Initialization Procedure*/
+	I2C_init();
+	SPI_init(MASTER_MODE);
+	/* End init */
+	
+	
+ for(int i=0; i<257; i++)
+ {
+	I2C_write(PCF8574_ADDR,i);
+	SPI_write(CS_0_PORT,CS_0_PIN,i);
+	_delay_ms(500);	 
+ }
+ 
+ while(1);
+   
 }
 
