@@ -1,0 +1,2 @@
+Used MCU : STM32F103RB
+Used IDE : KEIL uVision 5
