@@ -29,6 +29,7 @@
 #include "STM_MY_LCD16X2.h"
 
 #include <stdio.h>
+#include <string.h>
 /* Include Interupt.h to access HMI Flags and Status Symbols */
 #include "Interupts.h"
 #include "Bluetooth_Interface.h"
@@ -64,6 +65,8 @@ I2C_HandleTypeDef hi2c1;
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_usart1_rx;
+DMA_HandleTypeDef hdma_usart2_rx;
 
 /* USER CODE BEGIN PV */
 
@@ -72,11 +75,13 @@ UART_HandleTypeDef huart2;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
+char txData[30] ="Hello World\r\n";
+char rxData[30];
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -112,6 +117,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_I2C1_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
@@ -120,10 +126,15 @@ int main(void)
 	/* LCD Init Code */
 	LCD1602_Begin4BIT(RS_GPIO_Port, RS_Pin, E_Pin, D4_GPIO_Port,D4_Pin, D5_Pin, D6_Pin, D7_Pin);
 	LCD1602_print("Setup Complete!");	
-	Bluetooth_write_database("Bluetooth Enabled not Disabled",9600);
-/* USER CODE END 2 */
+	//Bluetooth_write_database("Bluetooth Enabled not Disabled",9600);
+  /* USER CODE END 2 */
+	HAL_UART_Receive_DMA(&huart2,(uint8_t*) rxData,10);
+	HAL_UART_Receive_DMA(&huart1,(uint8_t*) rxData,10);
 
-  /* Infinite loop */
+  HAL_UART_Transmit(&huart2,(uint8_t *) txData,strlen(txData),10);
+  HAL_UART_Transmit(&huart1,(uint8_t *) txData,strlen(txData),10);
+
+/* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
@@ -260,7 +271,7 @@ static void MX_USART2_UART_Init(void)
 
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
+  huart2.Init.BaudRate = 57600;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
@@ -274,6 +285,24 @@ static void MX_USART2_UART_Init(void)
   /* USER CODE BEGIN USART2_Init 2 */
 
   /* USER CODE END USART2_Init 2 */
+
+}
+
+/** 
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void) 
+{
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
+  /* DMA1_Channel6_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
 
 }
 
@@ -335,7 +364,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : BT_Connection_Pin */
   GPIO_InitStruct.Pin = BT_Connection_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(BT_Connection_GPIO_Port, &GPIO_InitStruct);
 
@@ -345,6 +374,9 @@ static void MX_GPIO_Init(void)
 
   HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
@@ -360,7 +392,15 @@ PUTCHAR_PROTOTYPE
 
   return ch;
 }
-/* USER CODE END 4 */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(huart);
+  /* NOTE: This function Should not be modified, when the callback is needed,
+           the HAL_UART_RxCpltCallback could be implemented in the user file
+   */
+	HAL_UART_Transmit(&huart1,(uint8_t *) rxData,strlen(rxData),10);
+}/* USER CODE END 4 */
 
 /**
   * @brief  This function is executed in case of error occurrence.

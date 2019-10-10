@@ -4,6 +4,9 @@
 #include "main.h"
 #include "stm32f1xx_hal_uart.h"
 
+uint8_t battery_charge= 0;
+char *detection[3] = {"Blocked!","--Free--","Testmode"};
+
 /* This function enables / disables Bluetooth Module*/
 void Bluetooth_set_power(uint8_t enable)
 {
@@ -46,9 +49,7 @@ void Bluetooth_write_database(uint8_t data[], uint32_t datarate)
 
 
 /*  Read Data back from BT Database */
-void Bluetooth_read_database(void)
+const char* Bluetooth_read_database(void)
 {	
-	uint8_t data[10];
-	HAL_UART_Receive(&huart2,data,10,1);
-	Bluetooth_write_database(data,9600);
+	
 }

@@ -10,4 +10,4 @@ uint8_t Bluetooth_get_connection_state(void);
 void Bluetooth_write_database(uint8_t data[],uint32_t datarate);
 
 /*  Read Data back from BT Database */
-void Bluetooth_read_database(void);
+const char* Bluetooth_read_database(void);
