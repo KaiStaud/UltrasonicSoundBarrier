@@ -11,3 +11,9 @@ void Bluetooth_write_database(uint8_t data[],uint32_t datarate);
 
 /*  Read Data back from BT Database */
 const char* Bluetooth_read_database(void);
+
+/* Set new password */
+void Bluetooth_set_password(uint8_t password);
+
+/* Set module mode */
+void Bluetooth_set_mode(uint8_t mode);
