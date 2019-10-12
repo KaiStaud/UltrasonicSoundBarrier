@@ -10,7 +10,8 @@ uint8_t Bluetooth_get_connection_state(void);
 void Bluetooth_write_database(uint8_t data[],uint32_t datarate);
 
 /*  Read Data back from BT Database */
-const char* Bluetooth_read_database(void);
+/* Gets called by USART Interupt */
+const char* Bluetooth_notify_database(void);
 
 /* Set new password */
 void Bluetooth_set_password(uint8_t password);

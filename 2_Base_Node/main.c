@@ -33,6 +33,8 @@
 /* Include Interupt.h to access HMI Flags and Status Symbols */
 #include "Interupts.h"
 #include "Bluetooth_Interface.h"
+#include "DataProcessing.h"
+#include "Globals.h"
 
 /* USER CODE END Includes */
 
@@ -56,8 +58,20 @@
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 /* States of the modules */	
- char mcu_states[6][10]={"Run","Stop","Force","Test","Sleep","OTA"};
-	
+char mcu_states[6][10]={"Run","Stop","Force","Test","Sleep","OTA"};
+
+char date[] = "12.10";
+char time[] = "12:56";
+/* Non Blocked or Blocked*/
+char state[] ="BLOCKED";
+
+/* Battery Charges */
+int own_charge = 100;
+int slave_charge = 100;
+
+char rxData[30];
+
+
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -81,7 +95,6 @@ static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 char txData[30] ="Hello World\r\n";
-char rxData[30];
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -125,7 +138,7 @@ int main(void)
 	
 	/* LCD Init Code */
 	LCD1602_Begin4BIT(RS_GPIO_Port, RS_Pin, E_Pin, D4_GPIO_Port,D4_Pin, D5_Pin, D6_Pin, D7_Pin);
-	LCD1602_print("Setup Complete!");	
+	LCD1602_clear();
 	//Bluetooth_write_database("Bluetooth Enabled not Disabled",9600);
   /* USER CODE END 2 */
 	HAL_UART_Receive_DMA(&huart2,(uint8_t*) rxData,10);
@@ -133,22 +146,42 @@ int main(void)
 
   HAL_UART_Transmit(&huart2,(uint8_t *) txData,strlen(txData),10);
   HAL_UART_Transmit(&huart1,(uint8_t *) txData,strlen(txData),10);
+	
+	/*
+	[x] LCD1602_1stLine(); LCD1602_print(time); LCD1602_setCursor(1,12); LCD1602_print(date);
+	[x] LCD1602_setCursor(2,1); LCD1602_print(state);
+	[x] LCD1602_setCursor(1,4); LCD1602_print(mcu_states[2]);
+	[x] LCD1602_setCursor(2,1);LCD1602_PrintInt(own_charge); LCD1602_setCursor(2,12); LCD1602_PrintInt(slave_charge);
+	*/
+	
+	draw_display(3, date, time, state,mcu_states[2],own_charge, slave_charge);  //
 
-/* Infinite loop */
+		/* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
-  {
+  {			
+		switch(update_UI_flag)
+	{	
+		case 1:/*When called System updates Screen, but mode doesn*t get changed*/
+			update_UI_flag = 0;	
+		break;
+		
+		case 2:/*When called System changes mode*/
+			update_UI_flag = 0; 
+			Bluetooth_write_database((uint8_t*)mcu_states[current_state],9600);
+		
+		break;
+		
+		case 0:/* This is the default Run Mode*/
+		break;
+	
+		default: break;
+	}	
+				
     /* USER CODE END WHILE */
-
+	}
     /* USER CODE BEGIN 3 */
-		if(update_UI_flag)
-		{
-			update_UI_flag = 0;
-			LCD1602_clear();
-			LCD1602_2ndLine();
-			LCD1602_print(mcu_states[State_position]);
-		}
-  }
+
   /* USER CODE END 3 */
 }
 
@@ -399,6 +432,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   /* NOTE: This function Should not be modified, when the callback is needed,
            the HAL_UART_RxCpltCallback could be implemented in the user file
    */
+	
 	HAL_UART_Transmit(&huart1,(uint8_t *) rxData,strlen(rxData),10);
 }/* USER CODE END 4 */
 
