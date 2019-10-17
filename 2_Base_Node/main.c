@@ -23,28 +23,17 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-/* Include LCD Library */
-#include "stm32f1xx.h"
+#include "stdio.h"
+#include "string.h"
 #include "STM_MY_LCD16X2.h"
-
-#include <stdio.h>
-#include <string.h>
-/* Include Interupt.h to access HMI Flags and Status Symbols */
 #include "Interupts.h"
 #include "Bluetooth_Interface.h"
 #include "DataProcessing.h"
-#include "Globals.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-#ifdef __GNUC__
-  /* With GCC, small printf (option LD Linker->Libraries->Small printf
-     set to 'Yes') calls __io_putchar() */
-  #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
-#else
-  #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
-#endif /* __GNUC__ */
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -54,19 +43,10 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-/* States of the modules */	
-char mcu_states[6][10]={"Run","Stop","Force","Test","Sleep","OTA"};
+char mcu_states[7][16]={"Run","Stop","Force","Test","Sleep","OTA","Buildnumber"};
+char txData[30] = "Hello World\r\n";
+char rxData[30]= "Hello Word\r\n";
 
-char date[] = "12.10";
-char time[] = "12:56";
-/* Non Blocked or Blocked*/
-char state[] ="BLOCKED";
-
-/* Battery Charges */
-int own_charge = 100;
-int slave_charge = 100;
-
-char rxData[30];
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -80,7 +60,7 @@ DMA_HandleTypeDef hdma_usart1_rx;
 DMA_HandleTypeDef hdma_usart2_rx;
 
 /* USER CODE BEGIN PV */
-RTC_TimeTypeDef sTime;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -92,7 +72,13 @@ static void MX_RTC_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-char txData[30] ="Hello World\r\n";
+#ifdef __GNUC__
+  /* With GCC, small printf (option LD Linker->Libraries->Small printf
+     set to 'Yes') calls __io_putchar() */
+  #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+  #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif /* __GNUC__ */
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -107,10 +93,7 @@ char txData[30] ="Hello World\r\n";
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint8_t minutes,seconds,hours;
-	char s_minutes[2];
-	char s_hours[2];
-	char s_seconds[2];
+
   /* USER CODE END 1 */
   
 
@@ -138,77 +121,56 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-/* LCD Init Code */
 	LCD1602_Begin4BIT(RS_GPIO_Port, RS_Pin, E_Pin, D4_GPIO_Port,D4_Pin, D5_Pin, D6_Pin, D7_Pin);
 	LCD1602_clear();
-	//Bluetooth_write_database("Bluetooth Enabled not Disabled",9600);
-  /* USER CODE END 2 */
+	LCD1602_print("Hello World");
+	
 	HAL_UART_Receive_DMA(&huart2,(uint8_t*) rxData,10);
 	HAL_UART_Receive_DMA(&huart1,(uint8_t*) rxData,10);
 
   HAL_UART_Transmit(&huart2,(uint8_t *) txData,strlen(txData),10);
   HAL_UART_Transmit(&huart1,(uint8_t *) txData,strlen(txData),10);
 	
-	/* Get Time from User */
-	printf("Enter Time in HH:MM:SS Format \r\n");
-	/* Receive String via UART */
-	HAL_UART_Receive(&huart2,&hours,2,1);
-	HAL_UART_Receive(&huart2,&minutes,2,1);
-	HAL_UART_Receive(&huart2,&seconds,2,1);
-	
-	/*Parse Time to RTC */
-	sTime.Hours = hours;
-	sTime.Minutes = minutes;
-	sTime.Seconds = seconds;
-	
-	HAL_RTC_SetTime(&hrtc,&sTime,RTC_FORMAT_BIN);
-	/* USER CODE END 2 */
+  /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		switch(update_UI_flag)
-	{	
-		case 1:/*When called System updates Screen, but mode doesn*t get changed*/
-			update_UI_flag = 0;	
-		break;
-		
-		case 2:/*When called System changes mode*/
-			update_UI_flag = 0; 
+		switch (update_UI_flag)
+		{	/* This is default Run Mode */
+			case 0:
+			
+			break;
+			
+			/* Handle Rotation */	
+			case 1:
+			LCD1602_clear();
+			LCD1602_print(mcu_states[State_position]);
+			//Bluetooth_write_database((uint8_t*)mcu_states[State_position],9600);
+			update_UI_flag = 0;
+			
+			break;
+			/* Handle Button press */
+			case 2:
+			LCD1602_clear();
+			LCD1602_2ndLine();
+			LCD1602_print(mcu_states[current_state]);	
 			Bluetooth_write_database((uint8_t*)mcu_states[current_state],9600);
-		
-		break;
-		
-		case 0:/* This is the default Run Mode*/
-		/* Get Time from RTC */
-		HAL_RTC_GetTime(&hrtc,&sTime,RTC_FORMAT_BIN);
-		hours = sTime.Hours;
-		minutes = sTime.Minutes;
-		seconds = sTime.Seconds;
-		
-		/*Convert to String*/
-		sprintf(s_hours, "%d", hours);
-		sprintf(s_minutes, "%d", minutes);
-		sprintf(s_seconds, "%d",seconds);
-		
-		/*Create final String*/
-		strcat(s_hours,":");
-		strcat(s_hours,s_minutes);
-		strcat(s_hours,":");
-		strcat(s_hours,s_seconds);
-		/*Call drawing Function*/
-		
-		draw_display(0, date, s_hours, state,mcu_states[2],own_charge, slave_charge);  //
-		//HAL_Delay(60000);
-		HAL_Delay(1000);
-		break;
-	
-		default: break;
-	}	
+			update_UI_flag = 0;
+
+			break;	
+			
+			default:
+			break;
+			
+			
+		}
+		/* Clear the update_UI_Flag*/
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+		
   }
   /* USER CODE END 3 */
 }
@@ -325,8 +287,8 @@ static void MX_RTC_Init(void)
 
   /** Initialize RTC and set the Time and Date 
   */
-  sTime.Hours = 22;
-  sTime.Minutes = 28;
+  sTime.Hours = 0;
+  sTime.Minutes = 0;
   sTime.Seconds = 0;
 
   if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN) != HAL_OK)
@@ -397,7 +359,7 @@ static void MX_USART2_UART_Init(void)
 
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
+  huart2.Init.BaudRate = 57600;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
@@ -449,19 +411,13 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, D4_Pin|D5_Pin|D6_Pin|D7_Pin 
-                          |BT_Connection_Pin|BT_Enable_Pin, GPIO_PIN_RESET);
+                          |BT_Enable_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, RS_Pin|E_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : B1_Pin */
-  GPIO_InitStruct.Pin = B1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : Incremental_Encoder_Button_Pin Incremental_Encoder_Edge1_Pin */
-  GPIO_InitStruct.Pin = Incremental_Encoder_Button_Pin|Incremental_Encoder_Edge1_Pin;
+  /*Configure GPIO pins : B1_Pin Incremental_Encoder_Button_Pin Incremental_Encoder_Edge1_Pin */
+  GPIO_InitStruct.Pin = B1_Pin|Incremental_Encoder_Button_Pin|Incremental_Encoder_Edge1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
@@ -473,9 +429,9 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(Incremental_Encoder_Edge2_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : D4_Pin D5_Pin D6_Pin D7_Pin 
-                           BT_Connection_Pin BT_Enable_Pin */
+                           BT_Enable_Pin */
   GPIO_InitStruct.Pin = D4_Pin|D5_Pin|D6_Pin|D7_Pin 
-                          |BT_Connection_Pin|BT_Enable_Pin;
+                          |BT_Enable_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -488,6 +444,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : BT_State_Pin */
+  GPIO_InitStruct.Pin = BT_State_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(BT_State_GPIO_Port, &GPIO_InitStruct);
+
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI0_IRQn);
@@ -495,13 +457,15 @@ static void MX_GPIO_Init(void)
   HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI1_IRQn);
 
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 
 /* USER CODE BEGIN 4 */
-
 PUTCHAR_PROTOTYPE
 {
   /* Place your implementation of fputc here */
@@ -518,7 +482,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
            the HAL_UART_RxCpltCallback could be implemented in the user file
    */
 	
-	HAL_UART_Transmit(&huart1,(uint8_t *) rxData,strlen(rxData),10);
+
+	{
+	/* Change MCU_State */
+	BT_to_HMI(rxData);
+	}
 }
 
 /* USER CODE END 4 */
