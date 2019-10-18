@@ -43,7 +43,6 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-char mcu_states[7][16]={"Run","Stop","Force","Test","Sleep","OTA","Buildnumber"};
 char txData[30] = "Hello World\r\n";
 char rxData[30]= "Hello Word\r\n";
 
@@ -123,7 +122,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 	LCD1602_Begin4BIT(RS_GPIO_Port, RS_Pin, E_Pin, D4_GPIO_Port,D4_Pin, D5_Pin, D6_Pin, D7_Pin);
 	LCD1602_clear();
-	LCD1602_print("Hello World");
+	//LCD1602_print("Hello World");
 	
 	HAL_UART_Receive_DMA(&huart2,(uint8_t*) rxData,10);
 	HAL_UART_Receive_DMA(&huart1,(uint8_t*) rxData,10);
@@ -136,37 +135,7 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
-  {
-		switch (update_UI_flag)
-		{	/* This is default Run Mode */
-			case 0:
-			
-			break;
-			
-			/* Handle Rotation */	
-			case 1:
-			LCD1602_clear();
-			LCD1602_print(mcu_states[State_position]);
-			//Bluetooth_write_database((uint8_t*)mcu_states[State_position],9600);
-			update_UI_flag = 0;
-			
-			break;
-			/* Handle Button press */
-			case 2:
-			LCD1602_clear();
-			LCD1602_2ndLine();
-			LCD1602_print(mcu_states[current_state]);	
-			Bluetooth_write_database((uint8_t*)mcu_states[current_state],9600);
-			update_UI_flag = 0;
-
-			break;	
-			
-			default:
-			break;
-			
-			
-		}
-		/* Clear the update_UI_Flag*/
+  {				
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
