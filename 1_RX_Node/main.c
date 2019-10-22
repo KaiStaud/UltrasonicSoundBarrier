@@ -1,20 +1,30 @@
-
-/* Includes */
-#include <avr/io.h>
 #include "Globals.h"
-#include <util/delay.h>
+#include <avr/io.h>
 #include <avr/interrupt.h>
-#include "UART.h"
+#include <util/delay.h>
+#include "UART.h" 
+#include "Sonar.h"
+#include "Buttons.h"
 
-/* Start of Application */
-int main()
+int main(void)
 {
-uart_init();
-while(1)
-{
-/* Send Char*/ 
-uart_tx("Hello");
-//_delay_ms(1000);
-}
+	 DDRB = (1<<5)|(1<<4);
+	 DDRC = 0xFF;
+	 DDRD = 0x00;
+	 uart_init();
+	 Buttons_init();
+	 sonar_init();	
 
+	 sei();
+	
+	/* Testsignal on Port C0 */
+	_delay_ms(500);   
+	PORTC ^= 0xFF;
+	_delay_ms(500);
+	PORTC ^= 0xFF;
+
+	while(1)
+    {
+	
+	}
 }
