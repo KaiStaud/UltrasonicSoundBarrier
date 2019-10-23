@@ -3,57 +3,66 @@
 #include "UART.h"
 #include <avr/io.h>
 #include <util/delay.h>
+#include <math.h>
 
-volatile uint32_t TOF=0;
+/* Time of Flight in Clock Cycles */
+volatile uint32_t timer_ticks =0;
+double time_sec = 0;
 
 void sonar_init(void)
 {
-	/* Rising Edge ,CLK Prescaler 1024 */
-	TCCR1B = (1<<ICES1)|(1<<CS12);
+	/* Rising Edge ,CLK Prescaler 8 */
+	TCCR1B = (1<<ICES1)|(1<<CS11);
 	/* Enable Input Capture Interupt */
 	TIMSK1 = (1<<ICIE1);
 }
 void send_pulse(void) /* Simulate One Pulse Mode*/
 {
 	SonarPort  |=  (1<<SonarPin);
-	_delay_ms(500);
-	SonarPort &=~ (1<<SonarPin);
+	_delay_us(10);
+	SonarPort  ^= (1<<SonarPin);
 }
 
-uint8_t get_time()
+void get_time(void)
 {
-	uint8_t time=0;
-	return time;
+	time_sec =  timer_ticks * tau;
 }
 
+/* final method to calculate distance in cm */
+double calc_distance(uint8_t theta_a)
+{	
+	double v_sonic = 331.5 * sqrt((theta_a +273.15)/273.15);
+	double distance = 0;
+	
+	/* get updated time of flight */
+	get_time();
 
-uint8_t calc_distance(uint8_t t_p)
-{
-	uint8_t distance =0;
+	distance = (time_sec*v_sonic)/2*100 ;
+	
 	return distance;
 }
 
-/* Interuptroutine für Input Capture */
+/* Input Capture Interruptroutine : get TOF */
 ISR(TIMER1_CAPT_vect)
 {
 
-/* Flankenerkennung umstellen*/
+/* Switch the Selected Edge*/
 TCCR1B ^= (1<<ICES1);
 
-/* Rising Edge erkennen*/
-if(TCCR1B & TCCR1B_ICES1)
+/* detect rising edge */
+if(!(TCCR1B & TCCR1B_ICES1))
 {
 TCNT1 = 0;
-PORTB ^=(1<<5);
+//PORTB ^=(1<<5);
 }
-/*Falling Edge erkennen*/
 
+/*detect falling edge */
 else
 {
-//TOF = ICR1;
-TOF = TCNT1;
-PORTB ^=(1<<4);
-uart_tx_int(TOF);
+timer_ticks = ICR1;
+//TOF = TCNT1;
+//PORTB ^=(1<<4);
+
 }
 
 }

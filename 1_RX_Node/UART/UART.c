@@ -47,6 +47,17 @@ uart_tx(int_to_str);
 
 }
 
+void uart_tx_double(double number)
+{
+char int_to_str[12];
+sprintf(int_to_str, "%f", number);
+
+uart_tx(int_to_str);
+
+}
+
+
+
 ISR(USART_RX_vect)
 {
 char c = UDR0;
