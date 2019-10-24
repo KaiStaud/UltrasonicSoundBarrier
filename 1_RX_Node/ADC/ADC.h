@@ -13,6 +13,9 @@ void ADC_init(void);
 /* Change ADC Channel */
 void change_channel(uint8_t channel);
 
+/* Single Conversion */
+uint8_t single_conversion(void);
+
 /* Convert ADC 0 data to °C */
 uint8_t get_temperature(void);
 

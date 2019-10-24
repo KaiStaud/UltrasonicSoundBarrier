@@ -8,3 +8,4 @@
 #define TCCR1B_ICES1 0x40
 #define ADC_ADC0 0x00
 #define ADC_ADC1 0x01
+

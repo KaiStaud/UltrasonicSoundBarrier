@@ -10,7 +10,7 @@ volatile uint32_t timer_ticks =0;
 double time_sec = 0;
 
 void sonar_init(void)
-{
+{	DDRB |= (1<<SonarPin);
 	/* Rising Edge ,CLK Prescaler 8 */
 	TCCR1B = (1<<ICES1)|(1<<CS11);
 	/* Enable Input Capture Interupt */
