@@ -9,6 +9,9 @@
 #define Baudrate 9600UL
 #define Baudvalue (((F_CPU / (16*Baudrate))) - 1)
 
+char message[] ="";;
+uint8_t index=0;
+
 void uart_init(void)
 {
 /* Set Baudrate to 9600 Baud/s*/
@@ -61,6 +64,17 @@ uart_tx(int_to_str);
 ISR(USART_RX_vect)
 {
 char c = UDR0;
+
+if(c !='\0')
+	{
+	message[index] = c;
+	index++;
+	}
+else 
+	{
+	index = 0;
+	uart_tx(message);
+	}
 UDR0 = c;
 }
 

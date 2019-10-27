@@ -58,7 +58,8 @@ ISR(ADC_vect)
 /*Channel 1 */
 if(ADMUX & (1<<MUX0))
 	{
- 		battery_voltage = ADC;
+ 		battery_voltage = ADC*5/1024;
+		
 	}
 /* Channel 0 */
 else

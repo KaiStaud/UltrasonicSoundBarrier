@@ -1,6 +1,8 @@
 #include "avr/interrupt.h"
 #include "stdint.h"
 
+extern char message[];
+
 /* USART Init Function */
 void uart_init(void);
 
