@@ -40,11 +40,13 @@ typedef struct
 }AlarmData;
 
 int main()
-{	DDRB = 0xFF;
+{	DDRB = (1<<1);
 	uart_init();
-	//Buttons_init();
+	Buttons_init();
 	sonar_init();
+	uart_tx("Initialisierung abgeschlossen\r\n");
 	ADC_init();	
+
 	sei();
 	
 	/* Externe Lib */
@@ -83,35 +85,30 @@ int main()
 	ds3231_SetDateTime(&newtime);
 	//_delay_ms(20000);
 	ds3231_GetDateTime(&newtime);
-	uart_tx_int(newtime.sec);
+	//uart_tx_int(newtime.sec);
+
 	
 	while(1)
     {
 	
-	/*temp = get_temperature();
-	send_pulse();
-	_delay_ms(50);
+		temp =get_temperature();
+		send_pulse();
+		_delay_ms(50);
 
-	uart_tx_int(calc_distance(temp));
-	uart_tx("\r\n");
-	*/
+		//uart_tx_int(calc_distance(temp));
+		//uart_tx("\r\n");
+	
 
-	/*
-	ds3231_GetDateTime(&newtime);
-	uart_tx_int(bcd2dec(newtime.hour));
-	uart_tx(" : ");
-	uart_tx_int(bcd2dec(newtime.min));
-	uart_tx(" : ");
-	uart_tx_int(bcd2dec(newtime.sec));
-	uart_tx("\r\n");
-	_delay_ms(1000);
-	*/
-       
-	 if (PINC & 0x01)
-	 PORTB |= (1<<5);
-	 else
-	 PORTB &=~(1<<5);                                                                                          
-
-	}
+		/*
+		ds3231_GetDateTime(&newtime);
+		uart_tx_int(bcd2dec(newtime.hour));
+		uart_tx(" : ");
+		uart_tx_int(bcd2dec(newtime.min));
+		uart_tx(" : ");
+		uart_tx_int(bcd2dec(newtime.sec));
+		uart_tx("\r\n");
+		_delay_ms(1000);
+		*/
+    }
 }
 
