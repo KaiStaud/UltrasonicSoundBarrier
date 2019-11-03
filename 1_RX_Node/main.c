@@ -6,6 +6,7 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include <avr/sleep.h>
+#include <avr/wdt.h>
 /* Private Includes */
 #include "UART.h" 
 #include "Sonar.h"
@@ -43,12 +44,17 @@ typedef struct
 
 int main()
 {
+wdt_reset();
+wdt_disable();
+wdt_reset();
+
 /* Clear all Interupts */
 cli();
 
 /* Enable all four status LEDs */
 DDRB  = (1<<LED_3_PIN)|(1<<LED_4_PIN);
-DDRD = (1<<LED_1_PIN)|(1<<LED_2_PIN);
+PORTD = (1<<LED_1_PIN)|(1<<LED_2_PIN)|(1<<4);
+DDRD = (1<<LED_1_PIN)|(1<<LED_2_PIN)|(1<<4);
 
 PORTB = (1<<LED_3_PIN)|(1<<LED_4_PIN);
 PORTD = (1<<LED_1_PIN)|(1<<LED_2_PIN);	;
@@ -96,10 +102,16 @@ sei();
 	ds3231_GetDateTime(&newtime);
 	uart_tx_int(newtime.sec);
 */
-	_delay_ms(2000);
-	Change_PowerMode('c');
+	_delay_ms(1000);
+	PORTB = 0x00;
+	PORTD = 0x00;	
+	Change_PowerMode('s');
+	
 	while(1)
     {
+		wdt_reset();
+		_delay_ms(500);
+		PORTD ^= 0xFF;
 		//temp =get_temperature();
 		//send_pulse();
 		//_delay_ms(50);
