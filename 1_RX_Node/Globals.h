@@ -30,9 +30,16 @@
 #define LED_4_PIN 4
 
 /* Real Time Clock Connections */
-#define RTC_PORT PORTC
+#define RST_PORT PORTC
 #define RST_PIN 1
 
 /* User Button Connections */
 #define BUTTON_PORT PORTD
 #define BUTTON_PIN	2 
+
+/* Hardware Reset Connection */
+#define RESET_PORT PORTD
+#define RESET_PIN	4
+
+#define Mainvoltage_min 819
+#define Backupvoltage_min 553

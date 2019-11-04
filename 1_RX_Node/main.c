@@ -50,7 +50,7 @@ wdt_reset();
 
 /* Clear all Interupts */
 cli();
-
+DDRC = 0x00;
 /* Enable all four status LEDs */
 DDRB  = (1<<LED_3_PIN)|(1<<LED_4_PIN);
 PORTD = (1<<LED_1_PIN)|(1<<LED_2_PIN)|(1<<4);
@@ -63,12 +63,12 @@ PORTD = (1<<LED_1_PIN)|(1<<LED_2_PIN);	;
 wakeup_init();
 sei();	
 
-//uart_init();
+uart_init();
 
 //	Buttons_init();
-//	sonar_init();
-//	uart_tx("Initialisierung abgeschlossen\r\n");
-//	ADC_init();	
+	sonar_init();
+	uart_tx("Initialisierung abgeschlossen\r\n");
+	ADC_init();	
 
 	/* Externe Lib */
 	//i2c_init();
@@ -76,7 +76,7 @@ sei();
 	//i2c_write(0x01);
 	//i2c_stop();
 
-/*	
+	
 	HistoricData newtime;
 	newtime.sec =dec2bcd(50);
 	newtime.min =dec2bcd(59);
@@ -97,26 +97,40 @@ sei();
 	newAlarm.mode = DS3231_AlarmEverySecond;
 
 	ds3231_init();
+/*
 	ds3231_SetDateTime(&newtime);
 	_delay_ms(20000);
 	ds3231_GetDateTime(&newtime);
 	uart_tx_int(newtime.sec);
+
 */
 	_delay_ms(1000);
 	PORTB = 0x00;
-	PORTD = 0x00;	
-	Change_PowerMode('s');
+	PORTD = 0x00;
+	wdt_reset();
+	_delay_ms(1000);	
+	Change_PowerMode('r');
 	
 	while(1)
     {
+/*	
+
 		wdt_reset();
 		_delay_ms(500);
 		PORTD ^= 0xFF;
-		//temp =get_temperature();
+		uart_tx_int(single_conversion(0));
+		uart_tx(" ");
+		uart_tx_int(single_conversion(2));	
+		uart_tx("\r\n");
+*/
+		
+//		uart_tx_int(rtc_get_temp());
+//		uart_tx("\r\n");
+
 		//send_pulse();
 		//_delay_ms(50);
 
-		//uart_tx_int(calc_distance(temp));
+		//uart_tx_int(calc_distance(rtc_get_temp()));
 		//uart_tx("\r\n");
 	
 		/*

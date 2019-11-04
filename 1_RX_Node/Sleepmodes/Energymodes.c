@@ -3,7 +3,15 @@
 #include "Globals.h"
 #include <avr/wdt.h>
 #include <util/delay.h>
+#include "UART.h"
+#include "DS3231.h"
 #include "Energymodes.h"
+#include "Sonar.h"
+#include "ADC.h"
+
+uint16_t batteries[2];
+uint8_t  temperature =20;
+uint8_t  tof;
 
 void Change_PowerMode(char c)
 {
@@ -33,7 +41,7 @@ void Change_PowerMode(char c)
 		DDRC |= 0x00;
 		DDRB |= 0x00;
 		/* Disable the ADC */	
-		ADCSRA ^=(1<<7);
+		ADCSRA ^= (1<<7);
 		/* Disable BOD and put CPU to Sleep */
 		set_sleep_mode(SLEEP_MODE_PWR_DOWN);  
 		sleep_enable();  
@@ -43,20 +51,54 @@ void Change_PowerMode(char c)
 		sleep_disable();   
 		DDRB  = (1<<LED_3_PIN)|(1<<LED_4_PIN);
 		DDRD = (1<<LED_1_PIN)|(1<<LED_2_PIN);
-	
-	
 		PORTB  = (1<<LED_3_PIN);
 		PORTD = (1<<LED_1_PIN)|(1<<LED_2_PIN);
 	break;
 
 	/* Perform HIL Test */
-	case 'h': PORTB |=(1<<3); PORTD=(1<<5);break;
-	
+	case 'h':
+		/* Run one  tof measurement */
+		temperature = rtc_get_temp();
+		send_pulse();
+		_delay_ms(60);
+		tof = calc_distance(temperature);
+		/* Measure battery voltages */
+		batteries[0]=single_conversion(0);
+		batteries[1]=single_conversion(2);
+		/* Generate report */
+		uart_tx("Ambient Temperature: ");
+		uart_tx_int(temperature);
+		uart_tx(" Distance :");
+		uart_tx_int(tof);
+		if(batteries[0]<Mainvoltage_min)
+			uart_tx(" Main Battery nearly dead");
+		else
+		{
+			uart_tx(" Main Battery: ");
+			uart_tx_int(batteries[0]);
+		}
+		if(batteries[1]<Backupvoltage_min)
+			uart_tx(" Backup Batterie nearly dead");
+		else
+		{
+			uart_tx(" Backup Battery: ");
+			uart_tx_int(batteries[1]);
+		}
+		uart_tx("\r\n");
+
+		
+	break;
+		
 	/* Force State */
-	case 'f': PORTB |=(1<<3); PORTD=(1<<5);break;
+	case 'f': 
+	
+	break;
 
 	/* Mute System */
-	case 'm': break;
+	case 'm':
+	
+	break;
+
 		/* Reset complete system */
 	case 'r':
 		/* Reset RTC */
@@ -66,10 +108,12 @@ void Change_PowerMode(char c)
 		/* Force an Hardware Reset */
 		wdt_enable(WDTO_2S);
 		_delay_ms(3000);
-		
 
 	break;
-	default:break;
+	
+	default:
+	
+	break;
 	}	
 
 }
@@ -79,6 +123,13 @@ void wakeup_init(void)
 	/* RTC generates an Low Level Interrupt @ PCINT11 */
 	PCICR  =(1<< PCIE1);
 	PCMSK1 =(1<< PCINT11);
+}
+
+void wdt_init(void)
+{
+MCUSR = 0;
+wdt_disable();
+return;
 }
 
 ISR(PCINT1_vect)
