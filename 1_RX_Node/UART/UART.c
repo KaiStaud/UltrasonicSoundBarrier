@@ -2,16 +2,12 @@
 #include "UART.h"
 #include "avr/io.h"
 #include "Globals.h"
-#include "Energymodes.h"
 /* Official C Includes */
 #include "stdio.h"
 #include "string.h"
 
 #define Baudrate 9600UL
 #define Baudvalue (((F_CPU / (16*Baudrate))) - 1)
-
-char message[] ="";;
-uint8_t index=0;
 
 void uart_init(void)
 {
@@ -20,7 +16,7 @@ void uart_init(void)
 	UBRR0L = Baudvalue;
 
 	/* Enable RX and TX Functionality */
-	UCSR0B |= (1<<RXEN0) |(1<<TXEN0)|(1<<RXCIE0) ;
+	UCSR0B = (1<<RXEN0) |(1<<TXEN0);//|(1<<RXCIE0) ;
 
 	/* Set UART and 8 Bits */
 	UCSR0C = (1<<UCSZ00) |(1<<UCSZ01);
@@ -38,8 +34,7 @@ void uart_tx(char message[])
 	while (!(UCSR0A & (1<<UDRE0)));  /* wait for transmission to complete */                         
 	UDR0 = message[message_index];
 	message_index++;
-}
-	
+	}	
 }
 
 void uart_tx_int(uint32_t number)
@@ -48,7 +43,6 @@ void uart_tx_int(uint32_t number)
 	sprintf(int_to_str, "%lu", number);
 
 	uart_tx(int_to_str);
-
 }
 
 void uart_tx_double(double number)
@@ -57,31 +51,4 @@ void uart_tx_double(double number)
 	sprintf(int_to_str, "%f", number);
 
 	uart_tx(int_to_str);
-
 }
-
-
-
-ISR(USART_RX_vect)
-{
-	char c = UDR0;
-
-	/* Check for Carriage Return  \r = 0x0D*/
-/*	if(c != 0x0D)
-		{
-		message[index] = c;
-		index++;
-		}
-
-	else 
-		{
-		index = 0;
-		uart_tx(message);
-		uart_tx("\r\n");
-		}
-*/
-	//UDR0 = c;
-	//Change_PowerMode(c);
-}
-
-char * uart_rx(void); 

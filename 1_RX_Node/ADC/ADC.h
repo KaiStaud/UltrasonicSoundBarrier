@@ -2,7 +2,7 @@
 #include <avr/interrupt.h>
 
 /* Initialize ADCs */
-void ADC_init(void);
+void adc_init(void);
 
 /* Change ADC Channel */
 void change_channel(uint8_t channel);

@@ -1,23 +1,5 @@
-#define F_CPU 16000000UL
-/* Global Include */
-#include "Globals.h"
-/* AVR own Includes */
 #include <avr/io.h>
-#include <avr/interrupt.h>
-#include <util/delay.h>
-#include <avr/sleep.h>
-#include <avr/wdt.h>
-/* Private Includes */
-#include "UART.h" 
-#include "Sonar.h"
-#include "ADC.h"
-#include "Buttons.h"
-#include "I2C.h"
-#include "I2C.h"
-#include "DS3231.h"
-#include "Energymodes.h"
-
-uint8_t temp = 0;
+#include "app.h"
 
 typedef struct 
 {
@@ -42,42 +24,7 @@ typedef struct
 	uint8_t mode;
 }AlarmData;
 
-int main()
-{
-wdt_reset();
-wdt_disable();
-wdt_reset();
-
-/* Clear all Interupts */
-cli();
-DDRC = 0x00;
-/* Enable all four status LEDs */
-DDRB  = (1<<LED_3_PIN)|(1<<LED_4_PIN);
-PORTD = (1<<LED_1_PIN)|(1<<LED_2_PIN)|(1<<4);
-DDRD = (1<<LED_1_PIN)|(1<<LED_2_PIN)|(1<<4);
-
-PORTB = (1<<LED_3_PIN)|(1<<LED_4_PIN);
-PORTD = (1<<LED_1_PIN)|(1<<LED_2_PIN);	;
-
-/* Enable Wakeup Source */
-wakeup_init();
-sei();	
-
-uart_init();
-
-//	Buttons_init();
-	sonar_init();
-	uart_tx("Initialisierung abgeschlossen\r\n");
-	ADC_init();	
-
-	/* Externe Lib */
-	//i2c_init();
-	//i2c_start(0x70);
-	//i2c_write(0x01);
-	//i2c_stop();
-
-	
-	HistoricData newtime;
+/*	HistoricData newtime;
 	newtime.sec =dec2bcd(50);
 	newtime.min =dec2bcd(59);
 	newtime.hour= dec2bcd(20);
@@ -86,62 +33,50 @@ uart_init();
 	newtime.month =dec2bcd(0);
 	newtime.year = dec2bcd(0);
 
-	AlarmData newAlarm;
-	newAlarm.sec =dec2bcd(0);
-	newAlarm.min =dec2bcd(0);
-	newAlarm.hour= dec2bcd(21);
-	newAlarm.weekDay = dec2bcd(0);
-	newAlarm.date =dec2bcd(0);
-	newAlarm.month =dec2bcd(0);
-	newAlarm.year = dec2bcd(0);
-	newAlarm.mode = DS3231_AlarmEverySecond;
-
-	ds3231_init();
-/*
 	ds3231_SetDateTime(&newtime);
-	_delay_ms(20000);
 	ds3231_GetDateTime(&newtime);
-	uart_tx_int(newtime.sec);
-
 */
-	_delay_ms(1000);
-	PORTB = 0x00;
-	PORTD = 0x00;
-	wdt_reset();
-	_delay_ms(1000);	
-	Change_PowerMode('r');
+
+char c='a';
+
+int main()
+{
+	app_init();
 	
-	while(1)
-    {
-/*	
+while(1)
+{	
 
-		wdt_reset();
-		_delay_ms(500);
-		PORTD ^= 0xFF;
-		uart_tx_int(single_conversion(0));
-		uart_tx(" ");
-		uart_tx_int(single_conversion(2));	
-		uart_tx("\r\n");
-*/
-		
-//		uart_tx_int(rtc_get_temp());
-//		uart_tx("\r\n");
+	/* Poll for new data */
+	if (!(UCSR0A & (1<<RXC0)))
+	{
+		switch(c) 
+		{
+			/* Continue operation */
+			case 'a': op_normal(); break;
 
-		//send_pulse();
-		//_delay_ms(50);
+			/* stop operation */
+			case 'b' : op_stop(); break;
 
-		//uart_tx_int(calc_distance(rtc_get_temp()));
-		//uart_tx("\r\n");
+			/*Enter Power- Down mode */
+			case 'c' : op_sleep(); break;
+
+			/* Perform HIL Test */
+			case 'd' : op_hil(); break;
+
+			/* Mute System */
+			case 'e': op_force(); break;
+
+			/* Reset Module */
+			case 'f' :app_reset();break;
+		}	
+		c= 'a';
+
+	}
+	/* Get new state */
+	else
+	    c = UDR0;
 	
-		/*
-		ds3231_GetDateTime(&newtime);
-		uart_tx_int(bcd2dec(newtime.hour));
-		uart_tx(" : ");
-		uart_tx_int(bcd2dec(newtime.min));
-		uart_tx(" : ");
-		uart_tx_int(bcd2dec(newtime.sec));
-		uart_tx("\r\n");
-		_delay_ms(1000);
-		*/
-    }
+	
+}
+
 }

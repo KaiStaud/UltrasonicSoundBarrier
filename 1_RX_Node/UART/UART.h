@@ -2,6 +2,7 @@
 #include "stdint.h"
 
 extern char message[];
+extern char c;
 
 /* USART Init Function */
 void uart_init(void);
@@ -17,4 +18,5 @@ void uart_tx_double(double number);
 
 /* USART Receive Function */
 char * uart_rx(void); 
-ISR(USART_RX_vect);
+//ISR(USART_RX_vect);
+ISR(PCINT2_vect);
