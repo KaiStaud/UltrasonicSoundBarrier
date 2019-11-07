@@ -1,5 +1,8 @@
 #include <avr/io.h>
+#include <stdint.h>
 #include "app.h"
+#include <avr/eeprom.h>
+#include "UART.h"
 
 typedef struct 
 {
@@ -32,17 +35,28 @@ typedef struct
 	newtime.date =dec2bcd(0);
 	newtime.month =dec2bcd(0);
 	newtime.year = dec2bcd(0);
-
 	ds3231_SetDateTime(&newtime);
 	ds3231_GetDateTime(&newtime);
 */
 
-char c='a';
+volatile char c ='a';
 
+uint8_t rtc_set = 0;
+uint8_t alarm0 [6] = {18,20,6,7,11,19}; 
 int main()
 {
-	app_init();
-	
+app_init();
+
+/*Check if RTC is set */
+eeprom_write_byte(0x00,101);
+eeprom_update_byte(0x00, 101);
+/* ----------- */
+
+/* Load Alarm Data in EEPROM */
+
+uart_tx_int(eeprom_read_byte(0x00));	
+
+
 while(1)
 {	
 
@@ -60,23 +74,30 @@ while(1)
 			/*Enter Power- Down mode */
 			case 'c' : op_sleep(); break;
 
-			/* Perform HIL Test */
-			case 'd' : op_hil(); break;
+			/* Can't be reached : Button Input */
+			case 'd' : op_button(); break;
 
 			/* Mute System */
-			case 'e': op_force(); break;
+			case 'e': op_mute(); break;
 
 			/* Reset Module */
 			case 'f' :app_reset();break;
-		}	
+
+			case 'g' :app_config();break;
+		}
 		c= 'a';
 
 	}
 	/* Get new state */
 	else
+	{
 	    c = UDR0;
-	
+		UDR0 = c;
+	}
 	
 }
+
+
+
 
 }

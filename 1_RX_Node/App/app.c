@@ -1,3 +1,8 @@
+/* official c headers */
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
 /* avr libc includes */
 #include <avr/io.h>
 #include <avr/sleep.h>
@@ -19,17 +24,17 @@ uint32_t batteries[2];
 char 	health[3] ={'x','x','x'};
 uint8_t distance;
 
+uint8_t mute = 0;
 void app_init(void)
 {
 	wdt_reset();
 	wdt_disable();
-	wdt_reset();
 
 	/* Clear all Interupts */
 	cli();
 	DDRC = 0x00;
 	/* Enable all four status LEDs */
-	DDRB  = (1<<LED_3_PIN)|(1<<LED_4_PIN);
+	DDRB  = (1<<LED_3_PIN)|(1<<LED_4_PIN)|(1<<5);
 	DDRD = (1<<LED_1_PIN)|(1<<LED_2_PIN);
 
 	PORTB = (1<<LED_3_PIN)|(1<<LED_4_PIN);
@@ -63,6 +68,38 @@ void app_reset(void)
 	_delay_ms(3000);
 }
 
+/* Configure Alarms over UART */
+void app_config(void)
+{
+char new_alarm[20];
+char input[20];
+uint8_t index,element =0;
+char *ptr;
+char c = 'a';
+
+uart_tx("Enter new Alarm,end menue by typing 'z'\r\n");
+
+/* If end character is send close configuration */
+while(c != 'z')
+	{
+		/* Wait for new chars */
+		if(!(UCSR0A & (1<<RXC0)));
+		
+		else
+		{
+			c =UDR0;
+			/* Add char to array */
+			input[index] = c;
+			index++;
+		}
+		
+	}
+	/* Terminate String */
+	input[index-1] = 0;
+	uart_tx(input);
+	uart_tx("Leaving Configuration menue\r\n");
+}
+
 /* Collect continuosly data */
 void op_normal(void)
 {
@@ -75,10 +112,11 @@ void op_normal(void)
 	/* Check batteries and give alarm if nec. */
 	batteries[0] = single_conversion(0);
 	batteries[1] = single_conversion(2);
-	send_package(batteries,distance);
+	//send_package(batteries,distance);
 	//debug(ambient_temp,batteries,health, distance);
 
 }
+
 /*Enter Idle Mode */
 void op_stop(void)
 {
@@ -114,14 +152,14 @@ void op_sleep(void)
 	sleep_disable();  
 	uart_tx("Back up runnning\r\n"); 
 }
-/* Perform HIL */
-void op_hil(void)
+void op_button(void)
 {
-
+app_reset();
 }
-void op_force(void)
-{
 
+void op_mute(void)
+{
+mute = !mute;
 }
 
 void debug(int8_t ambient_temp, uint32_t *batteries,char *health,uint8_t distance)
@@ -140,16 +178,21 @@ void debug(int8_t ambient_temp, uint32_t *batteries,char *health,uint8_t distanc
 
 void send_package(uint32_t *batteries, uint8_t distance)
 {
-int i;
-	for(i=0; i<2; i++)
+int i=0;
+if(mute)
 	{
-		if(batteries[i]<min_voltages[i])
-			health[i] = 'L';
-		else
-			health[i] = 'G';	
+	for(i=0; i<2;i++)
+		{
+			if(batteries[i] < min_voltages[i])
+				{
+					uart_tx("Low Voltage Alert for Battery ");
+					uart_tx_int(i);
+					uart_tx(",\r\n");
+				}
+		}
 	}
-	if(health[0]==health[1])
-		health[2] = 'D';
-	else
-		health[2] = 'G';
+uart_tx("Distance: ");
+uart_tx_int(distance);
+uart_tx("\r\n");
 }
+
