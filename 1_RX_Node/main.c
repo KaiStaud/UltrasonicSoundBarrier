@@ -1,9 +1,9 @@
 #include <avr/io.h>
 #include <stdint.h>
 #include "app.h"
+#include "EEPROM.h"
 #include <avr/eeprom.h>
 #include "UART.h"
-
 typedef struct 
 {
 	uint8_t sec;
@@ -41,22 +41,12 @@ typedef struct
 
 volatile char c ='a';
 
-uint8_t rtc_set = 0;
-uint8_t alarm0 [6] = {18,20,6,7,11,19}; 
 int main()
 {
 app_init();
-
-/*Check if RTC is set */
-eeprom_write_byte(0x00,101);
-eeprom_update_byte(0x00, 101);
-/* ----------- */
-
-/* Load Alarm Data in EEPROM */
-
-uart_tx_int(eeprom_read_byte(0x00));	
-
-
+load_timestamp(0);
+uart_tx("\r\n");
+load_timestamp(1);
 while(1)
 {	
 
