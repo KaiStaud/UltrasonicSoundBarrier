@@ -4,6 +4,9 @@
 #include "EEPROM.h"
 #include <avr/eeprom.h>
 #include "UART.h"
+#include <util/delay.h>
+#include <stdio.h>
+
 typedef struct 
 {
 	uint8_t sec;
@@ -40,13 +43,10 @@ typedef struct
 */
 
 volatile char c ='a';
-
 int main()
 {
 app_init();
-load_timestamp(0);
-uart_tx("\r\n");
-load_timestamp(1);
+//return_eeprom();
 while(1)
 {	
 
@@ -80,14 +80,7 @@ while(1)
 	}
 	/* Get new state */
 	else
-	{
-	    c = UDR0;
-		UDR0 = c;
-	}
-	
+	    c = UDR0;	
 }
-
-
-
 
 }

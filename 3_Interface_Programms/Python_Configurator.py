@@ -8,7 +8,7 @@ commands =['a','b','c','d','e','f','g']
 date_time= [28,10,2019,12,40,00]
 
 #Check if module is connected properly
-slave= serial.Serial('COM5', baudrate = 9600, timeout = 1)
+#slave= serial.Serial('COM5', baudrate = 9600, timeout = 1)
 time.sleep(2)
 
 #Ask user to create request
@@ -35,5 +35,5 @@ elif select ==1:
         # delay one second
         time.sleep(1)
 
-slave.close()    
+#slave.close()    
 # roll out config routine    

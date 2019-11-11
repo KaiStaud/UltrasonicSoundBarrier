@@ -10,7 +10,7 @@
 #define Baudvalue (((F_CPU / (16*Baudrate))) - 1)
 
 void uart_init(void)
-{
+{	stdout = &mystdout;
 	/* Set Baudrate to 9600 Baud/s*/
 	UBRR0H =(Baudvalue>>8);
 	UBRR0L = Baudvalue;
@@ -51,4 +51,19 @@ void uart_tx_double(double number)
 	sprintf(int_to_str, "%f", number);
 
 	uart_tx(int_to_str);
+}
+
+void usart_tx(char data) {
+    // Wait for empty transmit buffer
+    while (!(UCSR0A & (1<<UDRE0)));
+    // Start transmission
+    UDR0 = data; 
+}
+ 
+// this function is called by printf as a stream handler
+int usart_putchar_printf(char var, FILE *stream) {
+    // translate \n to \r for br@y++ terminal
+    if (var == '\n') usart_tx('\r');
+    usart_tx(var);
+    return 0;
 }

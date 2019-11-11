@@ -16,6 +16,7 @@
 #include "Sonar.h"
 #include "UART.h"
 #include "Wakeups.h"
+#include "EEPROM.h"
 
 uint32_t min_voltages[2] = {819,553};
 
@@ -53,7 +54,7 @@ void app_init(void)
 	uart_init();
 	sei();
 
-	uart_tx("Init finished\r\n");
+	printf("Init finished");
 
 }
 
@@ -62,7 +63,7 @@ void app_reset(void)
 	/* Reset RTC */
 	RST_PORT |= (1<<RST_PIN);
 	/* Dump EEPROM */
-
+	clear_eeprom();
 	/* Force an Hardware Reset */
 	wdt_enable(WDTO_2S);
 	_delay_ms(3000);
@@ -71,13 +72,11 @@ void app_reset(void)
 /* Configure Alarms over UART */
 void app_config(void)
 {
-char new_alarm[20];
 char input[20];
-uint8_t index,element =0;
-char *ptr;
+uint8_t index= 0;
 char c = 'a';
 
-uart_tx("Enter new Alarm,end menue by typing 'z'\r\n");
+printf("Enter new Alarm,end menue by typing 'z'\r\n");
 
 /* If end character is send close configuration */
 while(c != 'z')
@@ -88,16 +87,18 @@ while(c != 'z')
 		else
 		{
 			c =UDR0;
-			/* Add char to array */
 			input[index] = c;
 			index++;
+			
 		}
 		
 	}
-	/* Terminate String */
-	input[index-1] = 0;
-	uart_tx(input);
-	uart_tx("Leaving Configuration menue\r\n");
+	input[index-1]= 0;
+	//uart_tx(input);
+	/* Save new Alarm to EEPROM */
+	save_timestamp(input);
+	printf("Leaving Configuration menue");
+	
 }
 
 /* Collect continuosly data */
@@ -120,19 +121,20 @@ void op_normal(void)
 /*Enter Idle Mode */
 void op_stop(void)
 {
-	uart_tx("Idling MCU\r\n");
+	printf("Idling MCU");
 	set_sleep_mode(SLEEP_MODE_IDLE);  
 	sleep_enable();  
 	sleep_bod_disable();
   	sleep_mode(); 
 	/* Leave Sleep Mode */
 	sleep_disable();  
-	uart_tx("Back to standard run mode\r\n");
+	printf("Back to standard run mode");
 }
 
 /*Enter Deep Sleep*/
 void op_sleep(void)
-{uart_tx("entering sleep mode\r\n");
+{
+printf("entering sleep mode");
 /* Set All Pins to Inputs */ 
 	PORTB = 0x00;
 	PORTC = 0x00;
@@ -149,8 +151,11 @@ void op_sleep(void)
 	sleep_bod_disable();
   	sleep_mode(); 
 	/* Leave Sleep Mode */
-	sleep_disable();  
-	uart_tx("Back up runnning\r\n"); 
+	sleep_disable();
+	_delay_ms(1000);  
+	printf("Back up runnning"); 
+
+
 }
 void op_button(void)
 {
@@ -164,16 +169,7 @@ mute = !mute;
 
 void debug(int8_t ambient_temp, uint32_t *batteries,char *health,uint8_t distance)
 {
-	uart_tx("Ambient_Temp: ");
-	uart_tx_int(ambient_temp);
-	uart_tx(" Distanz: ");
-	uart_tx_int(distance);
-	uart_tx(" Hauptbatterie: ");
-	uart_tx_int(batteries[0]);
-	uart_tx(" Backupbatterie: ");
-	uart_tx_int(batteries[1]);
-	uart_tx("\r\n");
-
+printf("Ambient Temperature: %i, Distance: %i, Main Supply Voltage %i, Backup Supply Voltage: %i",(int)ambient_temp,(int)distance,(int)batteries[0],(int)batteries[1]);
 }
 
 void send_package(uint32_t *batteries, uint8_t distance)
@@ -184,15 +180,9 @@ if(mute)
 	for(i=0; i<2;i++)
 		{
 			if(batteries[i] < min_voltages[i])
-				{
-					uart_tx("Low Voltage Alert for Battery ");
-					uart_tx_int(i);
-					uart_tx(",\r\n");
-				}
+				printf("Low Voltage Alert for Battery %i \r\n",i);
 		}
 	}
-uart_tx("Distance: ");
-uart_tx_int(distance);
-uart_tx("\r\n");
+printf("Distance:%i",(int)distance);
 }
 
