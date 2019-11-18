@@ -20,10 +20,10 @@
 
 uint32_t min_voltages[2] = {819,553};
 
-int8_t  ambient_temp;
-uint32_t batteries[2];
+uint8_t  ambient_temp = 0;
+uint32_t batteries[2] = {0,0};
 char 	health[3] ={'x','x','x'};
-uint8_t distance;
+uint8_t distance = 0;
 
 uint8_t mute = 0;
 void app_init(void)
@@ -55,12 +55,11 @@ void app_init(void)
 	sei();
 
 	printf("Init finished");
-
 }
 
 void app_reset(void)
 {
-	/* Reset RTC */
+/* Reset RTC */
 	RST_PORT |= (1<<RST_PIN);
 	/* Dump EEPROM */
 	clear_eeprom();
@@ -94,34 +93,34 @@ while(c != 'z')
 		
 	}
 	input[index-1]= 0;
-	//uart_tx(input);
+	//printf("Your input %s",input);
 	/* Save new Alarm to EEPROM */
 	save_timestamp(input);
 	printf("Leaving Configuration menue");
-	
 }
 
 /* Collect continuosly data */
 void op_normal(void)
 {
-	/* Get temperature */
-	ambient_temp = rtc_get_temp();
+/* Get temperature */
+	//ambient_temp = rtc_get_temp();
+	ambient_temp = get_temp();
 	/* Measure TOF + Distance */
 	send_pulse();
 	_delay_ms(60);
 	distance = calc_distance(ambient_temp);
 	/* Check batteries and give alarm if nec. */
-	batteries[0] = single_conversion(0);
-	batteries[1] = single_conversion(2);
+	batteries[0] = single_conversion(CHANNEL_MAIN_SUPPLY);
+	batteries[1] = single_conversion(CHANNEL_BACKUP_SUPPLY);
 	//send_package(batteries,distance);
-	//debug(ambient_temp,batteries,health, distance);
+	debug(ambient_temp,batteries,health, distance);
 
 }
 
 /*Enter Idle Mode */
 void op_stop(void)
 {
-	printf("Idling MCU");
+printf("Idling MCU");
 	set_sleep_mode(SLEEP_MODE_IDLE);  
 	sleep_enable();  
 	sleep_bod_disable();
@@ -156,6 +155,7 @@ printf("entering sleep mode");
 	printf("Back up runnning"); 
 
 
+
 }
 void op_button(void)
 {
@@ -169,7 +169,8 @@ mute = !mute;
 
 void debug(int8_t ambient_temp, uint32_t *batteries,char *health,uint8_t distance)
 {
-printf("Ambient Temperature: %i, Distance: %i, Main Supply Voltage %i, Backup Supply Voltage: %i",(int)ambient_temp,(int)distance,(int)batteries[0],(int)batteries[1]);
+//printf("Ambient Temperature: %i, Distance: %i, Main Supply Voltage %i, Backup Supply Voltage: %i",(int)ambient_temp,(int)distance,(int)batteries[0],(int)batteries[1]);
+printf("%i,%i,%i,%i\n",(int)ambient_temp,(int)distance,(int)batteries[0],(int)batteries[1]);
 }
 
 void send_package(uint32_t *batteries, uint8_t distance)
@@ -185,4 +186,3 @@ if(mute)
 	}
 printf("Distance:%i",(int)distance);
 }
-

@@ -1,6 +1,5 @@
 #include "Globals.h"
 #include "Sonar.h"
-#include "UART.h"
 #include <avr/io.h>
 #include <util/delay.h>
 #include <math.h>

@@ -1,11 +1,14 @@
 /* Private Includes */
 #include "UART.h"
 #include "avr/io.h"
-#include "Globals.h"
+//#include "Globals.h"
 /* Official C Includes */
 #include "stdio.h"
 #include "string.h"
+#include "Globals.h"
+#include "avr/io.h"
 
+//#define F_CPU 16000000UL
 #define Baudrate 9600UL
 #define Baudvalue (((F_CPU / (16*Baudrate))) - 1)
 
@@ -20,37 +23,6 @@ void uart_init(void)
 
 	/* Set UART and 8 Bits */
 	UCSR0C = (1<<UCSZ00) |(1<<UCSZ01);
-}
-
-void uart_tx(char message[])
-{
-	uint8_t message_index = 0;
-	/* Compute string length */
-	//uint8_t message_length = strlen(message);
-
-	/* Transmit every character on its own*/
-	while(message[message_index] != '\0')
-	{
-	while (!(UCSR0A & (1<<UDRE0)));  /* wait for transmission to complete */                         
-	UDR0 = message[message_index];
-	message_index++;
-	}	
-}
-
-void uart_tx_int(uint32_t number)
-{
-	char int_to_str[12];
-	sprintf(int_to_str, "%lu", number);
-
-	uart_tx(int_to_str);
-}
-
-void uart_tx_double(double number)
-{
-	char int_to_str[12];
-	sprintf(int_to_str, "%f", number);
-
-	uart_tx(int_to_str);
 }
 
 void usart_tx(char data) {

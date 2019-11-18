@@ -43,3 +43,8 @@
 
 #define Mainvoltage_min 819
 #define Backupvoltage_min 553
+
+/* ADC Channels */
+#define CHANNEL_MAIN_SUPPLY 0x02
+#define CHANNEL_BACKUP_SUPPLY 0x03
+#define CHANNEL_LM35_ADJ 0x00

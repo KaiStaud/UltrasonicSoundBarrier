@@ -1,9 +1,10 @@
 #include <avr/io.h>
 #include "ADC.h"
 #include "Globals.h"
-#include "UART.h"
 
-uint8_t battery_voltage[2] = {0,0};
+uint16_t battery_voltage[2] = {0,0};
+uint16_t temperature_buff =0;
+uint8_t temperature = 0;
 
 /* Initialize ADCs */
 void adc_init(void)
@@ -24,14 +25,16 @@ void change_channel(uint8_t channel)
 	/* Halt the ADC */
 	ADCSRA ^=(1<<ADEN);
 	ADMUX&=~0xFF; 
-	
-	/*measure main battery voltage */
-	if(channel ==0)
+	/* Measure the voltage on LM35 ADJ Pin */
+	if(channel ==CHANNEL_LM35_ADJ)
 		ADMUX |= (1<<REFS0);
+	/*measure main battery voltage */
+	else if(channel ==CHANNEL_MAIN_SUPPLY)
+		ADMUX |= (1<<REFS0)|(1<<MUX1);
 	
 	/* RTC backup battery measurement */
-	else if (channel ==2)
-		ADMUX |= (1<<REFS0)|(1<<MUX1);
+	else if (channel ==CHANNEL_BACKUP_SUPPLY)
+		ADMUX |= (1<<REFS0)|(1<<MUX0)|(1<<MUX1);
 	
  	/* Enable ADC again */
 	ADCSRA ^=(1<<ADEN);
@@ -51,23 +54,34 @@ uint8_t get_battery_voltage(void)
 	return battery_voltage[0];
 }
 
+uint8_t get_temp(void)
+{
+temperature_buff = single_conversion(CHANNEL_LM35_ADJ);
+temperature = (temperature_buff*500)/1024;
+return temperature;
+}
+
 ISR(ADC_vect)
 {
 /* Check the channel  and write Data to buffer*/
 
-/* Channel 2 */
-if(ADMUX &(1<<MUX1))
+if(ADMUX ==CHANNEL_LM35_ADJ)
+	{
+		temperature_buff = ADC;
+		change_channel(CHANNEL_MAIN_SUPPLY);
+	}
+
+else if(ADMUX == CHANNEL_MAIN_SUPPLY)
 	{
 		battery_voltage[1] = ADC;
-		change_channel(0);
+		change_channel(CHANNEL_BACKUP_SUPPLY);
 	}
-/* Channel 0 */
-else
+/* Channel  */
+else if(ADMUX == CHANNEL_BACKUP_SUPPLY)
 	{
 		battery_voltage[0] = ADC;
-		change_channel(2);
+		change_channel(CHANNEL_LM35_ADJ);
 	}
 	ADCSRA |= (1<<ADSC);
 
 }
-
