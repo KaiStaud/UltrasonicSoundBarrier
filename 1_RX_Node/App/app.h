@@ -19,5 +19,5 @@ void op_button(void);
 void op_mute(void);
 
 /* "Print Functions" */
-void debug(int8_t ambient_temp, uint32_t *batteries,char *health,uint8_t distance);
+void debug(int ambient_temp, uint32_t *batteries,char *health,uint8_t distance);
 void send_package(uint32_t *batteries, uint8_t distance);

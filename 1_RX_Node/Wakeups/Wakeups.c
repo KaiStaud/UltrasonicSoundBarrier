@@ -8,7 +8,7 @@ void wakeups_init(void)
 {
 	/* Setup Interrupts */
 	PCICR  =(1<<PCIE1)|(1<<PCIE2);
-	PCMSK1 =(1<<PCINT11);
+	PCMSK1 =(1<<PCINT11)|(1<<PCINT9);
 	PCMSK2 =(1<<PCINT16)|(1<<PCINT18);
 
 	//wdt_init();
@@ -24,7 +24,7 @@ void wdt_init(void)
 /* RTC  ~INT- Pin ISR */
 ISR(PCINT1_vect)
 {
-
+/* extern Flag doesn't get recognized by MCU */
 }
 /* User Button ISR */
 ISR(PCINT2_vect)
