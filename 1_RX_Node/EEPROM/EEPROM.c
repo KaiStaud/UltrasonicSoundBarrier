@@ -10,69 +10,47 @@
 
 /* private includes */
 #include "Globals.h"
-#include "DS3231.h"
 #include "UART.h"
 #include "EEPROM.h"
 
 /* private macros */
-uint8_t next_addr = 0x02;
-uint8_t alarm_number = 0;
-uint8_t date_time[7];
 
 /* private functions */
 
-void save_timestamp(char* timestamp)
+void save_timestamp(uint8_t h, uint8_t m, uint8_t s, uint8_t alarm_num)
 {
-	uint8_t section = 0;
-	char *ptr;
-	char delimiter[] = ",";
-	/* Restore last called address and increment by one */
-	alarm_number = eeprom_read_byte((uint8_t*)0x01)+1; 
-	next_addr = 0x02 + alarm_number* 7;
-
-	printf("Number of saved timestamps %i",(int)alarm_number);
-
-	/* Split string into time and date */
-	ptr = strtok(timestamp, delimiter);
-
-	while(ptr != NULL)
-		{
-			date_time[section]= atoi(ptr);
-			section++;
-			/* Start over again */
-		 	ptr = strtok(NULL, delimiter);
-		} 
-		/* Save it to EEPROM */
-	for(section = 0;section<7; section++)
-		{
-			eeprom_update_byte ((uint8_t*)next_addr, date_time[section]);
-			/* Advance to next free address */
-			next_addr++;
-		}
-	eeprom_update_byte((uint8_t*)0x01,alarm_number);
+	/* Save it to EEPROM */
+	if(alarm_num == 1)
+	{
+	eeprom_update_byte((uint8_t*)0x07,h);
+	eeprom_update_byte((uint8_t*)0x08,m);
+	eeprom_update_byte((uint8_t*)0x09,s);
+	}
+	else
+	{
+	eeprom_update_byte((uint8_t*)0x0A,h);
+	eeprom_update_byte((uint8_t*)0x0B,m);
+	}
 }
 
-uint8_t* load_timestamp(uint8_t i)
-{	static uint8_t timestamp[7];
+uint8_t* load_timestamp(uint8_t alarm_num)
+{	static uint8_t timestamp[3];
 	uint8_t section;
-	uint8_t addr = 0x02+i*7;
+	uint8_t addr = 0x07+alarm_num*3;
 	/* Load timestamp from EEPROM */
-	for(section=0; section<7; section++)
-		{
-		timestamp[section] = eeprom_read_byte( (uint8_t *) addr);
-		//printf("%i,",(int)timestamp[section]);
-		addr++;
-		}	
+	while(section<2)
+	{
+	timestamp[section] = eeprom_read_byte((uint8_t*)addr);
+	section++;
+	addr++;
+	}
+
 	return timestamp;
 }
 
 void clear_eeprom(void)
-{ 
-	uint8_t addr = 0x01;
-	/* Call 0x01 for saved number of timestamps */
-	uint8_t n = eeprom_read_byte((uint8_t *)0x01)+1;
-
-for(addr = 0x01; addr <= (0x01+n*7); addr++)
+{uint8_t addr; 
+	for(addr = 0x00; addr <= 0x0B; addr++);
 	eeprom_update_byte ((uint8_t*)addr, 0xFF); 
 }
 

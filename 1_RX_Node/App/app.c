@@ -17,6 +17,7 @@
 #include "UART.h"
 #include "twi.h"
 #include "rtc.h"
+#include "rtc_startup.h"
 #include "Wakeups.h"
 #include "EEPROM.h"
 
@@ -61,16 +62,12 @@ void app_init(void)
 	twi_init_master();
 	rtc_reset_alarm();
 	rtc_init();
-	/* Get the Current Time from UART */	
-
 	/* Set the initial time and first two Alarms */
-	rtc_set_time_s(12, 57, 30);
-	/* Set Alarm 1 */
-	rtc_set_alarm_s(12, 58, 0,1);
-	/* Set Alarm 2 */
-	rtc_set_alarm_s(12, 59, 0,2);
+	init_time();
+	/* Set initial Alarms  */
+	init_alarms();
+	//rtc_set_alarm_s(12, 0, 30,1);
 	rtc_write_byte(~0b00000011, 0x0f);
-
 	printf("Init finished");
 }
 
@@ -88,38 +85,19 @@ void app_reset(void)
 /* Configure Alarms over UART */
 void app_config(void)
 {
-char input[20];
-uint8_t index= 0;
-char c = 'a';
+	printf("Enter new Alarm,end menue by typing 'z'\r\n");
+	/* Get new alarm */
 
-printf("Enter new Alarm,end menue by typing 'z'\r\n");
+	/* Save it to RTC */
 
-/* If end character is send close configuration */
-while(c != 'z')
-	{
-		/* Wait for new chars */
-		if(!(UCSR0A & (1<<RXC0)));
-		
-		else
-		{
-			c =UDR0;
-			input[index] = c;
-			index++;
-			
-		}
-		
-	}
-	input[index-1]= 0;
-	//printf("Your input %s",input);
 	/* Save new Alarm to EEPROM */
-	save_timestamp(input);
 	printf("Leaving Configuration menue");
 }
 
 /* Collect continuosly data */
 void op_normal(void)
 {
-/* Get temperature */
+	/* Get temperature */
 	//ambient_temp = rtc_get_temp();
 	//ambient_temp = get_temp();
 	ambient_temp = single_conversion(CHANNEL_LM35_ADJ);
@@ -132,13 +110,15 @@ void op_normal(void)
 	batteries[1] = single_conversion(CHANNEL_BACKUP_SUPPLY);
 	//send_package(batteries,distance);
 	//debug(ambient_temp,batteries,health, distance-distance_offset);
-	debug(single_conversion(CHANNEL_LM35_ADJ),batteries,health, distance);
+	//debug(single_conversion(CHANNEL_LM35_ADJ),batteries,health, distance);
+	t = rtc_get_time();
+	//printf("%d:%d:%d\n", t->hour, t->min, t->sec);
 }
 
 /*Enter Idle Mode */
 void op_stop(void)
 {
-printf("Idling MCU");
+	printf("Idling MCU");
 	set_sleep_mode(SLEEP_MODE_IDLE);  
 	sleep_enable();  
 	sleep_bod_disable();

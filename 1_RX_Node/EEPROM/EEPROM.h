@@ -2,10 +2,10 @@
 #include <stdint.h>
 
 /* Create new timestamp */
-void save_timestamp(char* timestamp);
+void save_timestamp(uint8_t h, uint8_t m, uint8_t s, uint8_t alarm_num);
 
 /* Load timestamp from memory */
-uint8_t* load_timestamp(uint8_t i);
+uint8_t* load_timestamp(uint8_t alarm_num);
 
 /* Delete all written variables -> 255 */
 void clear_eeprom(void);
