@@ -9,6 +9,7 @@
 #include <avr/sleep.h>
 #include <avr/wdt.h>
 #include <avr/interrupt.h>
+#include <avr/eeprom.h>
 #include <util/delay.h>
 /* private includes */
 #include "App.h"
@@ -62,11 +63,17 @@ void app_init(void)
 	twi_init_master();
 	rtc_reset_alarm();
 	rtc_init();
-	/* Set the initial time and first two Alarms */
-	init_time();
-	/* Set initial Alarms  */
-	init_alarms();
-	//rtc_set_alarm_s(12, 0, 30,1);
+	/* If RTC is not configured ask for Initialization */
+	if(eeprom_read_byte((uint8_t*)0x06)== 0xFF)
+	{
+		/* Set the initial time and first two Alarms */
+		init_time();
+		/* Set initial Alarms  */
+		init_alarms();
+		/* Update configuration byte in EEPROM */
+		eeprom_update_byte((uint8_t*)0x06,0x01);
+	}
+	/* If already configured do nothing */ 
 	rtc_write_byte(~0b00000011, 0x0f);
 	printf("Init finished");
 }
@@ -84,13 +91,11 @@ void app_reset(void)
 
 /* Configure Alarms over UART */
 void app_config(void)
-{
-	printf("Enter new Alarm,end menue by typing 'z'\r\n");
-	/* Get new alarm */
-
-	/* Save it to RTC */
-
-	/* Save new Alarm to EEPROM */
+{	/* Read Time */
+	init_time();
+	/* Read Alarms */
+	return_eeprom(); // Already stored Alarms 
+	init_alarms();
 	printf("Leaving Configuration menue");
 }
 
@@ -98,7 +103,6 @@ void app_config(void)
 void op_normal(void)
 {
 	/* Get temperature */
-	//ambient_temp = rtc_get_temp();
 	//ambient_temp = get_temp();
 	ambient_temp = single_conversion(CHANNEL_LM35_ADJ);
 	/* Measure TOF + Distance */
@@ -110,7 +114,7 @@ void op_normal(void)
 	batteries[1] = single_conversion(CHANNEL_BACKUP_SUPPLY);
 	//send_package(batteries,distance);
 	//debug(ambient_temp,batteries,health, distance-distance_offset);
-	//debug(single_conversion(CHANNEL_LM35_ADJ),batteries,health, distance);
+	debug(single_conversion(CHANNEL_LM35_ADJ),batteries,health, distance);
 	t = rtc_get_time();
 	//printf("%d:%d:%d\n", t->hour, t->min, t->sec);
 }
@@ -162,26 +166,26 @@ printf("entering sleep mode");
 }
 void op_button(void)
 {
-app_reset();
+	app_reset();
 }
 
 void op_mute(void)
 {
-mute = !mute;
+	mute = !mute;
 }
 
 void debug(int ambient_temp, uint32_t *batteries,char *health,uint8_t distance)
 {
-int8_t i,f;
-ds3231_get_temp_int(&i,&f);
-//printf("Ambient Temperature: %i, Distance: %i, Main Supply Voltage %i, Backup Supply Voltage: %i",ambient_temp,distance,(int)batteries[0],(int)batteries[1]);
-printf("%i,%i,%i,%i,%i\n",ambient_temp,i,distance,(int)batteries[0],(int)batteries[1]);
+	int8_t i,f;
+	ds3231_get_temp_int(&i,&f);
+	//printf("Ambient Temperature: %i, Distance: %i, Main Supply Voltage %i, Backup Supply Voltage: %i",ambient_temp,distance,(int)batteries[0],(int)batteries[1]);
+	printf("%i,%i,%i,%i,%i\n",ambient_temp,i,distance,(int)batteries[0],(int)batteries[1]);
 }
 
 void send_package(uint32_t *batteries, uint8_t distance)
 {
-int i=0;
-if(mute)
+	int i=0;
+	if(mute)
 	{
 	for(i=0; i<2;i++)
 		{
@@ -189,6 +193,6 @@ if(mute)
 				printf("Low Voltage Alert for Battery %i",i);
 		}
 	}
-printf("Distance:%i",(int)distance);
+	printf("Distance:%i",(int)distance);
 }
 

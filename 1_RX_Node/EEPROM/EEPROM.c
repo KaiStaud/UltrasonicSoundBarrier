@@ -33,52 +33,40 @@ void save_timestamp(uint8_t h, uint8_t m, uint8_t s, uint8_t alarm_num)
 	}
 }
 
-uint8_t* load_timestamp(uint8_t alarm_num)
-{	static uint8_t timestamp[3];
-	uint8_t section;
-	uint8_t addr = 0x07+alarm_num*3;
-	/* Load timestamp from EEPROM */
-	while(section<2)
+void load_timestamps(uint8_t* alarms)
+{	
+	uint8_t address=0x07;
+	uint8_t i;
+	/* Read back eeprom */
+	for(i=0;i<5;i++)
 	{
-	timestamp[section] = eeprom_read_byte((uint8_t*)addr);
-	section++;
-	addr++;
+	alarms[i]= eeprom_read_byte((uint8_t*)address);
+	address++;
 	}
 
-	return timestamp;
 }
 
 void clear_eeprom(void)
-{uint8_t addr; 
+{	uint8_t addr; 
 	for(addr = 0x00; addr <= 0x0B; addr++);
 	eeprom_update_byte ((uint8_t*)addr, 0xFF); 
 }
 
 void return_eeprom(void)
 {
-	uint8_t* timestamp;
-	/* Get the number of stored alarms */
-	uint8_t count = eeprom_read_byte((uint8_t *)0x01)+1;
-	uint8_t i=0;
-	uint8_t section =0;
-	printf("Rückgabe von %i Timestamps\r\n",count);
-/* Count up on on alarms */
-	while(i<count)
-	{
-		timestamp = load_timestamp(i);
-
-		for(section=0;section<6;section++)
-				printf("%i,",timestamp[section]);
-		printf("%iz",timestamp[section++]);
-		i++;
-	}
+	uint8_t saved_alarms[5];
+	load_timestamps(&saved_alarms);
+	printf("Alarm 1: %i:%i:%i\n",saved_alarms[0],saved_alarms[1],saved_alarms[2]);
+	printf("Alarm 2: %i:%i",saved_alarms[3],saved_alarms[4]);
 }
 
 void transfer_timestamp(void)
 {
+	uint8_t alarms2transfer[5];
 	/* Call timestamp */
-
-	/*Convert element into bcd format */
-
+	load_timestamps(&alarms2transfer);
 	/* Send it over to RTC */
+	rtc_set_alarm_s(alarms2transfer[0],alarms2transfer[1],alarms2transfer[2],1);
+	rtc_set_alarm_s(alarms2transfer[3],alarms2transfer[4],alarms2transfer[5],2);
+
 }
