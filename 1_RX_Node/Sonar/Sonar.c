@@ -1,12 +1,21 @@
 #include "Globals.h"
-#include "Sonar.h"
+
+/* AVR libc Includes */
 #include <avr/io.h>
 #include <util/delay.h>
+#include <avr/eeprom.h>
 #include <math.h>
+
+#include <stdio.h>
+
+/* Private Includes */
+#include "Sonar.h"
+#include "ADC.h"
 
 /* Time of Flight in Clock Cycles */
 volatile uint32_t timer_ticks =0;
 double time_sec = 0;
+uint16_t offset =0;
 
 void sonar_init(void)
 {	DDRB |= (1<<SonarPin);
@@ -27,8 +36,17 @@ void get_time(void)
 	time_sec =  timer_ticks * tau;
 }
 
+void set_offset(void)
+{
+}
+
+uint8_t get_offset(void)
+{
+}
+
+
 /* final method to calculate distance in cm */
-double calc_distance(uint8_t theta_a)
+uint16_t calc_distance(float theta_a)
 {	
 	double v_sonic = 331.5 * sqrt((theta_a +273.15)/273.15);
 	double distance = 0;
@@ -36,7 +54,7 @@ double calc_distance(uint8_t theta_a)
 	/* get updated time of flight */
 	get_time();
 
-	distance = (time_sec*v_sonic)/2*100 ;
+	distance = (time_sec*v_sonic)/2*100 - offset;
 	
 	return distance;
 }

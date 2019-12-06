@@ -4,7 +4,7 @@
 
 uint16_t battery_voltage[2] = {0,0};
 uint16_t temperature_buff =0;
-uint8_t temperature = 0;
+float temperature = 0;
 
 /* Initialize ADCs */
 void adc_init(void)
@@ -54,10 +54,12 @@ uint8_t get_battery_voltage(void)
 	return battery_voltage[0];
 }
 
-uint8_t get_temp(void)
+float get_temp(void)
 {
 temperature_buff = single_conversion(CHANNEL_LM35_ADJ);
-temperature = (temperature_buff*500)/1024;
+//temperature = (temperature_buff*500)/1024;
+
+ temperature = (temperature_buff*50)/1024;
 return temperature;
 }
 

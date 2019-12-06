@@ -12,7 +12,13 @@ void send_pulse(void); /* Simulate One Pulse Mode*/
 void get_time(void);
 
 /* calculate the distance */
-double calc_distance(uint8_t theta_a);
+uint16_t calc_distance(float theta_a);
+
+/* Get the Sonar Offset */
+void set_offset(void);
+
+/* Return Sonar Offset */
+uint8_t get_offset(void);
 
 /* interrupt routine*/
 ISR(TIMER1_CAPT_vect);

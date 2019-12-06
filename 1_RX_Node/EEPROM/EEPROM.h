@@ -15,3 +15,9 @@ void return_eeprom(void);
 
 /* Transfer a current timestamp to RTC */
 void transfer_timestamp(void);
+
+/* Functions copied from ATmega 328P datasheet */
+
+void EEPROM_write(unsigned int uiAddress, unsigned char ucData);
+
+unsigned char EEPROM_read(unsigned int uiAddress);

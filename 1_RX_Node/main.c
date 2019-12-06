@@ -1,18 +1,20 @@
 #include "Globals.h"
 #include "util/delay.h"
 #include <avr/io.h>
+#include "App.h"
 #include "UART.h"
 #include <stdio.h> 
 
-char c; 
+extern char d;
 
 int main(void)
 {
+char c = 'a'; 
 	app_init();
 	_delay_ms(500);  
 	//printf("Hello from AVR STUDIO 4.19");
     while(1)
-    {
+	{
         if (!(UCSR0A & (1<<RXC0)))
 		{
 		switch(c) 
@@ -36,16 +38,16 @@ int main(void)
 			case 'f' :app_reset();break;
 
 			case 'g' :app_config();break;
+		
+			default: break;
 		}
 		c= 'a';
-		
-		
+		printf("D Value = %c\n",d);
+		/* Combinatory Logic: assign next state depending on interrupt and current state */
+		c = d;
 	} 
  
-        else
-		{
+    else
 		c = UDR0;
-		UDR0 = c;
-		} 
-    }
+	}
 }

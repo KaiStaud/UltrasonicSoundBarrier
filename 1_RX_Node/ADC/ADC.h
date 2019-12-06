@@ -11,7 +11,7 @@ void change_channel(uint8_t channel);
 uint16_t single_conversion(uint8_t channel);
 
 /* Get the Temperature */
-uint8_t get_temp(void);
+float get_temp(void);
 
 
 /* Convert ADC 1 data to V */

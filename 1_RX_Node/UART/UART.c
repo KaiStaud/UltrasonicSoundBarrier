@@ -6,9 +6,7 @@
 #include "stdio.h"
 #include "string.h"
 #include "Globals.h"
-#include "avr/io.h"
 
-//#define F_CPU 16000000UL
 #define Baudrate 9600UL
 #define Baudvalue (((F_CPU / (16*Baudrate))) - 1)
 
@@ -19,7 +17,7 @@ void uart_init(void)
 	UBRR0L = Baudvalue;
 
 	/* Enable RX and TX Functionality */
-	UCSR0B = (1<<RXEN0) |(1<<TXEN0);//|(1<<RXCIE0) ;
+	UCSR0B = (1<<RXEN0) |(1<<TXEN0);//|(1<<RXCIE0);
 
 	/* Set UART and 8 Bits */
 	UCSR0C = (1<<UCSZ00) |(1<<UCSZ01);
@@ -39,3 +37,4 @@ int usart_putchar_printf(char var, FILE *stream) {
     usart_tx(var);
     return 0;
 }
+

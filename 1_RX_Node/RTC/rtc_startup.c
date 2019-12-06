@@ -30,6 +30,7 @@ string_to_int(alarms);
 /* Call save timestamp */
 save_timestamp(alarms[0],alarms[1],alarms[2],1);
 save_timestamp(alarms[3],alarms[4],alarms[5],2);
+
 /* Call transfer timestamp */
 rtc_set_alarm_s(alarms[0],alarms[1],alarms[2],1);
 rtc_set_alarm_s(alarms[3],alarms[4],alarms[5],2);

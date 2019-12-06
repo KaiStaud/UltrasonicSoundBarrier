@@ -80,8 +80,9 @@ void app_init(void)
 
 void app_reset(void)
 {
-/* Reset RTC */
+	/* Physical RTC Reset */
 	RST_PORT |= (1<<RST_PIN);
+	/* Soft RTC Reset */
 	/* Dump EEPROM */
 	clear_eeprom();
 	/* Force an Hardware Reset */
@@ -114,14 +115,16 @@ void op_normal(void)
 	batteries[1] = single_conversion(CHANNEL_BACKUP_SUPPLY);
 	//send_package(batteries,distance);
 	//debug(ambient_temp,batteries,health, distance-distance_offset);
-	debug(single_conversion(CHANNEL_LM35_ADJ),batteries,health, distance);
+	//debug(single_conversion(CHANNEL_LM35_ADJ),batteries,health, distance);
 	t = rtc_get_time();
+	rtc_write_byte(~0b00000011, 0x0f);
 	//printf("%d:%d:%d\n", t->hour, t->min, t->sec);
+	_delay_ms(1000);
 }
 
 /*Enter Idle Mode */
 void op_stop(void)
-{
+{	rtc_write_byte(~0b00000011, 0x0f);
 	printf("Idling MCU");
 	set_sleep_mode(SLEEP_MODE_IDLE);  
 	sleep_enable();  
@@ -137,6 +140,7 @@ void op_stop(void)
 /*Enter Deep Sleep*/
 void op_sleep(void)
 {
+rtc_write_byte(~0b00000011, 0x0f);
 printf("entering sleep mode");
 /* Set All Pins to Inputs */ 
 	PORTB = 0x00;

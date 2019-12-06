@@ -17,9 +17,9 @@ print("Enter 1 for initializing a new system, 2 for creating alarms, 3 for basic
 select = int(input('Input:'))
 
 if(select == 1):
-    DUT_cf.current_time()
+    DUT_cf.init_module(1)
 elif(select == 2):
-    print("Not implement yet")
+    DUT_cf.na_module()
 elif(select == 3):
     DUT_tf.Hardware_Test()
 elif(select == 4):    
