@@ -66,6 +66,12 @@ def current_time():
     # Function for creating new alarm -> return to Send Serial
 def new_alarm() :
     inputs = ["Hours","Minutes","Seconds"]
+    # send 'g' to enter config menue
+    connection.write(b'g')
+    
+    # wait for ACK string to be received
+    
+    
     
     # Get input from user
     for i in range(3):
