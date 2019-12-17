@@ -22,16 +22,17 @@
 #include "Wakeups.h"
 #include "EEPROM.h"
 
-uint32_t min_voltages[2] = {819,553};
+uint16_t min_voltages[2] = {819,553};
 
-float  ambient_temp = 0;
-uint32_t batteries[2] = {0,0};
+uint32_t  ambient_temp = 0;
 char 	health[3] ={'x','x','x'};
 uint8_t distance = 0;
 uint8_t mute = 0;
 
 struct tm* t = NULL;
 uint8_t hour=0, min=0, sec=0;
+
+uint16_t data_carriage[3] = {0,0,0};
 
 void app_init(void)
 {
@@ -41,12 +42,7 @@ void app_init(void)
 	/* Clear all Interupts */
 	cli();
 	DDRC = 0x00;
-	/* Enable all four status LEDs */
-	DDRB  = (1<<LED_3_PIN)|(1<<LED_4_PIN)|(1<<5);
-	DDRD = (1<<LED_1_PIN)|(1<<LED_2_PIN);
-
-	PORTB = (1<<LED_3_PIN)|(1<<LED_4_PIN);
-	PORTD = (1<<LED_1_PIN)|(1<<LED_2_PIN);	;
+	RTCPort |=(1<<RTCPin);
 
 	PCICR  =(1<<PCIE1)|(1<<PCIE2);
 	PCMSK1 =(1<<PCINT11);
@@ -80,8 +76,6 @@ void app_init(void)
 
 void app_reset(void)
 {
-	/* Physical RTC Reset */
-	RST_PORT |= (1<<RST_PIN);
 	/* Soft RTC Reset */
 	/* Dump EEPROM */
 	clear_eeprom();
@@ -102,24 +96,19 @@ void app_config(void)
 
 /* Collect continuosly data */
 void op_normal(void)
-{
-	/* Get temperature */
-	//ambient_temp = get_temp();
-	ambient_temp = single_conversion(CHANNEL_LM35_ADJ);
+{	
+	get_raw_data(&data_carriage);
+		
 	/* Measure TOF + Distance */
 	send_pulse();
 	_delay_ms(60);
-	distance = calc_distance(ambient_temp);
+	distance = calc_distance(get_temp());
+	
 	/* Check batteries and give alarm if nec. */
-	batteries[0] = single_conversion(CHANNEL_MAIN_SUPPLY);
-	batteries[1] = single_conversion(CHANNEL_BACKUP_SUPPLY);
-	//send_package(batteries,distance);
-	//debug(ambient_temp,batteries,health, distance-distance_offset);
-	//debug(single_conversion(CHANNEL_LM35_ADJ),batteries,health, distance);
+	//send_package(data,distance);
+	debug(data_carriage, distance);
 	t = rtc_get_time();
 	rtc_write_byte(~0b00000011, 0x0f);
-	//printf("%d:%d:%d\n", t->hour, t->min, t->sec);
-	_delay_ms(1000);
 }
 
 /*Enter Idle Mode */
@@ -151,16 +140,23 @@ printf("entering sleep mode");
 	DDRC |= 0x00;
 	DDRB |= 0x00;
 	/* Disable the ADC */	
-	ADCSRA ^= (1<<7);
+	ADCSRA &=~ (1<<7);
+	SMCR |=(1<<2); // Power down mode
+	SMCR |=1; // enable sleep instructions
+	MCUCR |= (3<<5); //set BODSE and BODS at the same time 
+	MCUCR = (MCUCR&~(1<<5))|(1<<6);//set BODS clera BODSE at the same time
+	__asm__ __volatile__("sleep");
+
 	/* Disable BOD and put CPU to Sleep */
-	set_sleep_mode(SLEEP_MODE_PWR_DOWN);  
-	sleep_enable();  
 	sleep_bod_disable();
-  	sleep_mode(); 
 	/* Leave Sleep Mode */
 	sleep_disable();
 	/* Clear alarm on RTC */
 	rtc_write_byte(~0b00000011, 0x0f);  
+	ADCSRA |= (1<<7);
+	/* Regenerate Pinout */
+	SonarPort |= (1<<SonarPin);
+	RTCPort |= (1<<RTCPin);
 
 	_delay_ms(1000);  
 	printf("Back up runnning"); 
@@ -178,12 +174,11 @@ void op_mute(void)
 	mute = !mute;
 }
 
-void debug(int ambient_temp, uint32_t *batteries,char *health,uint8_t distance)
+void debug(uint16_t *data,uint8_t distance)
 {
-	int8_t i,f;
+	uint8_t i,f;
 	ds3231_get_temp_int(&i,&f);
-	//printf("Ambient Temperature: %i, Distance: %i, Main Supply Voltage %i, Backup Supply Voltage: %i",ambient_temp,distance,(int)batteries[0],(int)batteries[1]);
-	printf("%i,%i,%i,%i,%i\n",ambient_temp,i,distance,(int)batteries[0],(int)batteries[1]);
+	printf("%i,%i,%i,%i,%i\n",data[2],i,distance,data[0],data[1]);
 }
 
 void send_package(uint32_t *batteries, uint8_t distance)
