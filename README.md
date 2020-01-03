@@ -6,8 +6,8 @@ This repository contains all files for the embedded systems.
 For the corresponding android app look for the repository openIR_Control.
 System will be soon ported to EFR32MG CPU with VCSEL Sensor.
 
-![Topsight of Board][board_top.jpg]
-![Bottomsight of Board][board_bottom.jpg]
+![Topsight of Board][https://github.com/KaiStaud/UltrasonicSoundBarrier/board_top.jpg]
+![Bottomsight of Board][https://github.com/KaiStaud/UltrasonicSoundBarrier/board_bottom.jpg]
 
 
  
